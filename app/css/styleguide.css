@@ -1,0 +1,60 @@
+:root {
+  --color-text-neutral-default: var(--color-primitives-slate-900);
+  --color-text-brand-secondary: var(--color-primitives-brand-600);
+  --color-primitives-slate-900: rgba(48, 48, 48, 1);
+  --color-primitives-brand-600: rgba(68, 68, 68, 1);
+  --color-primitives-slate-200: rgba(227, 227, 227, 1);
+  --color-primitives-brand-300: rgba(217, 217, 217, 1);
+  --system-colors-grays-gray-5: rgba(229, 229, 234, 1);
+}
+
+/*
+
+To enable a theme in your HTML, simply add one of the following data attributes to an HTML element, like so:
+
+<body data-color-mode="SDS-light">
+    <!-- the rest of your content -->
+</body>
+
+You can apply the theme on any DOM node, not just the `body`
+
+*/
+
+[data-color-mode="SDS-light"] {
+  --color-text-neutral-default: var(--color-primitives-slate-900);
+  --color-text-brand-secondary: var(--color-primitives-brand-600);
+}
+
+[data-color-mode="SDS-dark"] {
+  --color-text-neutral-default: var(--color-primitives-slate-200);
+  --color-text-brand-secondary: var(--color-primitives-brand-300);
+}
+
+[data-color-mode="brand-b-light"] {
+  --color-text-neutral-default: var(--color-primitives-slate-900);
+  --color-text-brand-secondary: var(--color-primitives-brand-600);
+}
+
+[data-system-colors-mode="light"] {
+  --system-colors-grays-gray-5: rgba(229, 229, 234, 1);
+}
+
+[data-system-colors-mode="dark"] {
+  --system-colors-grays-gray-5: rgba(44, 44, 46, 1);
+}
+
+[data-system-colors-mode="dark-elevated"] {
+  --system-colors-grays-gray-5: rgba(44, 44, 46, 1);
+}
+
+[data-system-colors-mode="IC-light"] {
+  --system-colors-grays-gray-5: rgba(229, 229, 233, 1);
+}
+
+[data-system-colors-mode="IC-dark"] {
+  --system-colors-grays-gray-5: rgba(36, 36, 38, 1);
+}
+
+[data-system-colors-mode="IC-dark-elevated"] {
+  --system-colors-grays-gray-5: rgba(36, 36, 38, 1);
+}
