@@ -21,3 +21,8 @@ app.mount("/static", StaticFiles(directory="app/css"), name="static")
 @app.get("/")
 def serve_index():
     return FileResponse(os.path.join("app/public", "index.html"))
+
+# test.html 서빙
+@app.get("/test")
+def serve_test():
+    return FileResponse(os.path.join("app/public", "test.html"))
