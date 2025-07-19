@@ -28,12 +28,10 @@
   </header>
 
   <!-- Main Content -->
-  <main class="max-w-7xl mx-auto mt-10 px-6">
+  <main class="max-w-5xl mx-auto mt-10 px-6">
 
     <!-- 손글씨 입력 섹션 -->
     <section class="bg-gray-200 p-8 rounded-2xl shadow w-full mb-10">
-
-      <!-- 퀘스트 버튼 -->
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-xl font-semibold text-gray-900">📝 손글씨 입력</h2>
         <button onclick="toggleQuest()" class="bg-gray-700 text-white text-base px-4 py-2 rounded-lg hover:bg-gray-800 flex items-center gap-2">
@@ -49,8 +47,6 @@
           "글씨는 그 사람의 인상을 결정짓습니다."
         </p>
         <button onclick="completeQuest()" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 text-lg">글씨 업로드하기</button>
-
-        <!-- 결과 영역 -->
         <div id="quest-result" class="hidden mt-6 bg-gray-100 p-4 rounded-lg text-gray-800">
           <p class="text-lg font-semibold">상위 18%입니다! 👑</p>
           <p class="text-gray-600 mt-1">이번 퀘스트를 완료하셨습니다.</p>
@@ -60,66 +56,69 @@
         </div>
       </div>
 
-      <!-- 입력 영역 -->
-      <div class="border border-dashed border-gray-400 bg-white rounded-xl h-[70vh] flex items-center justify-center text-gray-500 text-xl">
-        손글씨 이미지를 업로드하거나 직접 입력해보세요
+      <!-- 업로드 입력창 -->
+      <div class="border border-dashed border-gray-400 bg-white rounded-xl h-[300px] flex flex-col items-center justify-center text-gray-500 text-xl mb-6">
+        <p>손글씨 이미지를 업로드하세요</p>
+        <input type="file" id="imageInput" accept="image/*" class="mt-4" />
+        <button onclick="submitImage()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 text-base">AI 분석 시작</button>
       </div>
 
+      <!-- 예시 문장 -->
       <div class="mt-6">
         <h3 class="text-base font-semibold text-gray-800 mb-3">표준 글씨체 예시</h3>
         <div class="bg-gray-100 p-6 rounded-md text-center font-serif text-2xl tracking-wide text-gray-700">
           한글은 아름다운 문자입니다.
         </div>
       </div>
-
-      <button class="mt-8 w-full bg-gray-700 text-white py-3 rounded-xl hover:bg-gray-800 text-lg">입력 완료</button>
     </section>
 
     <!-- 분석 결과 섹션 -->
     <section id="analysis-section" class="hidden bg-gray-200 p-8 rounded-2xl shadow fade-in mb-10">
       <h2 class="text-xl font-semibold mb-6 text-gray-900">📊 분석 결과</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 유사도 점수 -->
         <div class="bg-white p-6 rounded-xl text-center">
           <p class="text-base text-gray-600">유사도 점수</p>
-          <p class="text-4xl font-bold text-gray-900 mt-3">87점</p>
+          <p class="text-4xl font-bold text-gray-900 mt-3" id="score-result">-</p>
         </div>
+
+        <!-- 오류 항목 -->
         <div class="bg-white p-6 rounded-xl text-center">
           <p class="text-base text-gray-600">오류 항목</p>
-          <ul class="text-base mt-3 text-red-600 space-y-2">
-            <li>✓ 글자 크기 불균형</li>
-            <li>✓ 간격이 좁음</li>
+          <ul id="error-list" class="text-base mt-3 text-red-600 space-y-2">
+            <!-- JS로 채워짐 -->
           </ul>
         </div>
       </div>
+
+      <!-- 피드백 텍스트 -->
       <div class="mt-8">
         <h3 class="text-base font-semibold text-gray-800 mb-3">AI 피드백</h3>
-        <div class="bg-white p-6 rounded-xl text-gray-700 text-base leading-relaxed">
-          글자의 기울기가 오른쪽으로 과도하게 치우쳐 있습니다. <br />
-          'ㄱ'의 획이 짧고 점의 위치가 부정확합니다.
+        <div id="feedback-text" class="bg-white p-6 rounded-xl text-gray-700 text-base leading-relaxed">
+          분석 결과가 여기에 표시됩니다.
         </div>
+      </div>
+
+      <!-- 교정 이미지 표시 영역 -->
+      <div class="mt-8 text-center">
+        <h3 class="text-base font-semibold text-gray-800 mb-3">교정된 이미지</h3>
+        <img id="corrected-image" class="inline-block rounded-xl border shadow" alt="교정 이미지" />
       </div>
     </section>
 
-    <!-- 버튼 섹션 -->
+    <!-- 버튼 영역 -->
     <div class="flex flex-col md:flex-row gap-4 justify-between">
       <button onclick="showAnalysis()" class="w-full md:w-auto bg-gray-700 text-white px-6 py-3 rounded-xl hover:bg-gray-800 text-lg">
         교정 학습 시작
       </button>
-      <button class="w-full md:w-auto bg-white text-gray-800 border border-gray-400 px-6 py-3 rounded-xl hover:bg-gray-200 text-lg">
+      <button onclick="location.reload()" class="w-full md:w-auto bg-white text-gray-800 border border-gray-400 px-6 py-3 rounded-xl hover:bg-gray-200 text-lg">
         다시 입력하기
       </button>
     </div>
-    
   </main>
 
-  <!-- JS 스크립트 -->
+  <!-- JavaScript 로직 -->
   <script>
-    function showAnalysis() {
-      const section = document.getElementById('analysis-section');
-      section.classList.remove('hidden');
-      section.scrollIntoView({ behavior: 'smooth' });
-    }
-
     function toggleQuest() {
       const box = document.getElementById('quest-box');
       box.classList.toggle('hidden');
@@ -128,6 +127,67 @@
     function completeQuest() {
       const result = document.getElementById('quest-result');
       result.classList.remove('hidden');
+    }
+
+    function showAnalysis() {
+      const section = document.getElementById('analysis-section');
+      section.classList.remove('hidden');
+      section.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function submitImage() {
+      const fileInput = document.getElementById("imageInput");
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("이미지를 선택해주세요!");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const res = await fetch("http://127.0.0.1:8000/evaluate", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          alert("분석 실패: " + error.detail);
+          return;
+        }
+
+        const result = await res.json();
+
+        // 점수 출력
+        document.getElementById("score-result").textContent = `${result.score}점`;
+
+        // 오류 항목 리스트 출력
+        const errorList = document.getElementById("error-list");
+        errorList.innerHTML = "";
+        const lines = result.feedback.split(/\\.\\s*/);
+        for (const line of lines) {
+          if (line.trim()) {
+            const li = document.createElement("li");
+            li.textContent = "✓ " + line.trim();
+            errorList.appendChild(li);
+          }
+        }
+
+        // 피드백 텍스트
+        document.getElementById("feedback-text").textContent = result.feedback;
+
+        // 이미지 출력
+        const img = document.getElementById("corrected-image");
+        img.src = result.corrected_image;
+
+        showAnalysis();
+
+      } catch (err) {
+        console.error("분석 중 오류 발생:", err);
+        alert("서버 연결 실패 또는 오류 발생");
+      }
     }
   </script>
 

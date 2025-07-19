@@ -10,9 +10,17 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from io import BytesIO
+from PIL import Image
 import os
 
+from app.handwriting_feedback_api import router as handwriting_router
+
 app = FastAPI()
+app.include_router(handwriting_router)
+
+# # ✅ 하위 FastAPI 앱 통합 (라우트 등록)
+#app.mount("/evaluate", handwriting_app)
 
 # 정적 파일(css, js 등) 서빙
 app.mount("/static", StaticFiles(directory="app/css"), name="static")
