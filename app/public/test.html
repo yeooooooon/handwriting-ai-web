@@ -95,7 +95,7 @@
       <div class="mt-8">
         <h3 class="text-base font-semibold text-gray-800 mb-3">AI 피드백</h3>
         <div id="feedback-text" class="bg-white p-6 rounded-xl text-gray-700 text-base leading-relaxed">
-          분석 결과가 여기에 표시됩니다.
+          분석 결과가 여기에 표시됩니다.  
         </div>
       </div>
 
@@ -147,7 +147,7 @@
       formData.append("file", file);
 
       try {
-        const res = await fetch("http://127.0.0.1:8000/evaluate", {
+        const res = await fetch(`http://${window.location.hostname}:8000/evaluate`, {
           method: "POST",
           body: formData,
         });
@@ -170,13 +170,13 @@
         for (const line of lines) {
           if (line.trim()) {
             const li = document.createElement("li");
-            li.textContent = "✓ " + line.trim();
+            li.innerHTML = line.trim();
             errorList.appendChild(li);
           }
         }
 
         // 피드백 텍스트
-        document.getElementById("feedback-text").textContent = result.feedback;
+        document.getElementById("feedback-text").innerHTML = result.feedback;
 
         // 이미지 출력
         const img = document.getElementById("corrected-image");
