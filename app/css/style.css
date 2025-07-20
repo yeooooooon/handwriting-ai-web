@@ -1,420 +1,227 @@
-.desktop {
-  background-color: #efefef;
+body, html {
+  margin: 0; padding: 0; width: 100vw; height: 100vh;
+  font-family: 'Pretendard', 'sans-serif';
+}
+.layout-bg {
+  background: #efefef;
+  min-height: 100vh;
+  min-width: 100vw;
+}
+.main-wrap {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 30px 0 50px 0;
+}
+.logo-title {
+  color: #1c64ff;
+  font-size: 31px;
+  font-family: 'Paperlogy-7Bold', 'Pretendard', sans-serif;
+  font-weight: bold;
+  margin: 0 0 32px 70px;
+  letter-spacing: 1px;
+}
+.grid-2x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(2, minmax(120px, auto));
+  gap: 30px 30px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* 각 카드별로 클래스명 부여.! */
+.today-sentence-card {
+  /* 오늘의 문장 카드만 스타일 */
+  min-height: 10px;
+  padding: 18px 20px 12px 20px;
+}
+
+.score-card {
+  /* 점수 카드만 스타일 */
+  min-height: 100px;
+  padding: 16px 22px 12px 22px;
+}
+
+.upload-card {
+  /* 업로드 카드만 스타일 */
+  min-height: 200px;
+  padding: 22px 18px 18px 18px;
+}
+
+.feedback-card {
+  /* 피드백 카드만 스타일 */
+  min-height: 180px;
+  padding: 14px 20px 14px 20px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 34px 34px 28px 34px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   display: flex;
-  flex-direction: row;
-  justify-content: center;
-  width: 100%;
+  flex-direction: column;
+  gap: 18px;
+  justify-content: flex-start;
+  min-width: 320px;
 }
-
-.desktop .div {
-  background-color: #efefef;
-  width: 1280px;
-  height: 720px;
-  position: relative;
+.card-title {
+  font-family: 'Pretendard-Bold', sans-serif;
+  font-size: 22px;
+  margin-bottom: 6px;
 }
-
-.desktop .group {
-  position: absolute;
-  width: 528px;
-  height: 433px;
-  top: 247px;
-  left: 100px;
+.today-sentence .highlight-box {
+  background: #dae1f8;
+  color: #1c64ff;
+  font-size: 20px;
+  font-family: 'Pretendard-Bold', sans-serif;
+  border-radius: 12px;
+  padding: 16px 26px;
 }
-
-.desktop .overlap {
-  position: relative;
-  width: 524px;
-  height: 433px;
-  background-color: #ffffff;
+.score-flex {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.score-circle {
+  width: 80px; height: 80px;
+  background: #1c64ff;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Pretendard-Bold', sans-serif;
+  margin-right: 10px;
+}
+.highlight-box1 {
+  background: #dae1f8;
+  color: #1c64ff;
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 15px;
+  font-family: 'Pretendard', sans-serif;
+}
+.highlight-box2 {
+  background: #dae1f8;
+  color: #171717;
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 14px;
+  font-family: 'Pretendard', sans-serif;
+  line-height: 20px;
+}
+.highlight-box.small { font-size: 12px; padding: 14px 16px;}
+.upload-desc {
+  color: #232323;
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+.upload-box {
+  border: 2.5px dashed #dae1f8;
   border-radius: 16px;
-}
-
-.desktop .overlap-group {
-  position: absolute;
-  width: 463px;
-  height: 234px;
-  top: 104px;
-  left: 30px;
-  border-radius: 16px;
-  border: 3px dashed;
-  border-color: #ffb4c2;
-}
-
-.desktop .group-2 {
+  padding: 30px 0 24px 0;
+  text-align: center;
+  margin-bottom: 10px;
+  min-height: 180px;
   position: relative;
-  width: 206px;
-  height: 167px;
-  top: 30px;
-  left: 128px;
 }
 
-.desktop .JPG-JPEG-PNG-WEBP {
-  position: absolute;
-  top: 85px;
-  left: 0;
-  font-family: "Pretendard-Medium", Helvetica;
-  font-weight: 500;
-  color: #505050;
-  font-size: 12px;
-  letter-spacing: 0;
-  line-height: normal;
-}
-
-.desktop .div-wrapper {
-  position: absolute;
-  width: 60px;
-  height: 73px;
-  top: -2px;
-  left: 71px;
-  background-image: url(https://c.animaapp.com/T8Qt5Cv7/img/icon.svg);
+.upload-icon {
+  width: 60px; height: 70px;
+  margin: 0 auto 2px;
+  background-image: url('https://c.animaapp.com/T8Qt5Cv7/img/icon.svg');
   background-size: 100% 100%;
-}
-
-.desktop .text-wrapper {
-  position: absolute;
-  top: 34px;
-  left: 19px;
-  font-family: "Paperlogy-7Bold", Helvetica;
-  font-weight: 700;
-  color: #757575;
-  font-size: 12px;
-  letter-spacing: 0;
-  line-height: normal;
-}
-
-.desktop .frame {
+  background-repeat: no-repeat;
+  position: relative;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 10px 16px;
+}
+
+.upload-filelabel {
+  font-family: 'Paperlogy-7Bold', sans-serif;
+  font-size: 12px; color: #757575;
+  line-height: 1.2;
   position: absolute;
-  top: 133px;
-  left: 52px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -13%); /* 아이콘 중간보다 살짝 위쪽에 */
+  width: 100%;
+  text-align: center;
+  pointer-events: none;
+}
+
+.upload-info {
+  font-size: 13px; color: #505050; margin: 0 auto 18px;
+}
+.btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 12px;
+  justify-content: center;  /* <- 추가! */
+}
+.btn {
+  padding: 11px 28px;
   border-radius: 9px;
-  border: 1.5px solid;
-  border-color: #f56883;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.desktop .text-wrapper-2 {
-  position: relative;
-  width: fit-content;
-  margin-top: -1.50px;
-  font-family: "Pretendard-Bold", Helvetica;
-  font-weight: 700;
-  color: #f56883;
-  font-size: 12px;
-  letter-spacing: 0;
-  line-height: normal;
-  white-space: nowrap;
-}
-
-.desktop .text-wrapper-3 {
-  position: absolute;
-  top: 24px;
-  left: 32px;
-  font-family: "Paperlogy-7Bold", Helvetica;
-  font-weight: 700;
-  color: var(--color-text-neutral-default);
   font-size: 16px;
-  letter-spacing: 0;
-  line-height: normal;
-  white-space: nowrap;
-}
-
-.desktop .p {
-  position: absolute;
-  top: 51px;
-  left: 32px;
-  font-family: "Pretendard-Medium", Helvetica;
-  font-weight: 500;
-  color: #505050;
-  font-size: 12px;
-  letter-spacing: 0;
-  line-height: normal;
-  white-space: nowrap;
-}
-
-.desktop .frame-2 {
-  justify-content: center;
-  padding: 12px 32px;
-  position: absolute;
-  top: 368px;
-  left: 151px;
-  background-color: #bababa;
-  border-radius: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.desktop .text-wrapper-4 {
-  position: relative;
-  width: fit-content;
-  margin-top: -1.00px;
-  font-family: "Pretendard-Bold", Helvetica;
   font-weight: 700;
-  color: #ffffff;
-  font-size: 14px;
-  letter-spacing: 0;
-  line-height: normal;
+  border: none;
+  cursor: pointer;
+  font-family: 'Pretendard-Bold', sans-serif;
+  transition: background 0.13s, color 0.13s, border 0.13s;
+}
+.btn.blue1 {
+  background: #fff;
+  color: #1c64ff;
+  border: 3px solid #1c64ff;
+}
+.btn.blue2 {
+  background: #1c64ff;
+  color: #fff;
+}
+.btn.gray {
+  background: #bababa;
+  color: #fff;
+}
+.btn.upload {
+  background: #fff;
+  color: #171717;
+  border: 3px solid #e5e5ea;
+}
+.btn.outline {
+  background: #fff;
+  color: #171717;
+  border: 3px solid #e5e5ea;
+}
+.fb-row {
+  background: #dae1f8;
+  color: #171717;
+  border-radius: 9px;
+  padding: 13px 18px;
+  margin-bottom:-3px;
+  font-size: 15px;
+  height: 50px;
+  line-height: 23px;
 }
 
-.desktop .frame-3 {
-  justify-content: center;
-  padding: 12px 32px;
-  position: absolute;
-  top: 368px;
-  left: 272px;
-  border-radius: 12px;
-  border: 2px solid;
-  border-color: #e5e5ea;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+/* 반응형 */
+@media (max-width: 1200px) {
+  .main-wrap { padding-left: 10px; padding-right: 10px; }
+  .logo-title { font-size: 34px; margin-left: 20px; }
+  .grid-2x2 { max-width: 98vw; }
 }
-
-.desktop .text-wrapper-5 {
-  position: relative;
-  width: fit-content;
-  margin-top: -2.00px;
-  font-family: "Pretendard-Bold", Helvetica;
-  font-weight: 700;
-  color: var(--color-text-brand-secondary);
-  font-size: 14px;
-  letter-spacing: 0;
-  line-height: normal;
+@media (max-width: 950px) {
+  .grid-2x2 {
+    grid-template-columns: 1fr;
+    grid-template-rows: unset;
+    gap: 28px 0;
+  }
+  .card { min-width: 0; }
 }
-
-.desktop .overlap-2 {
-  position: absolute;
-  width: 528px;
-  height: 582px;
-  top: 98px;
-  left: 656px;
-}
-
-.desktop .group-3 {
-  position: absolute;
-  width: 528px;
-  height: 582px;
-  top: 0;
-  left: 0;
-}
-
-.desktop .overlap-3 {
-  position: absolute;
-  width: 524px;
-  height: 175px;
-  top: 0;
-  left: 0;
-  background-color: #ffffff;
-  border-radius: 16px;
-}
-
-.desktop .overlap-4 {
-  position: absolute;
-  width: 524px;
-  height: 391px;
-  top: 191px;
-  left: 0;
-  background-color: #ffffff;
-  border-radius: 16px;
-}
-
-.desktop .rectangle {
-  width: 356px;
-  height: 84px;
-  top: 67px;
-  left: 136px;
-  position: absolute;
-  background-color: #ffe4e9;
-  border-radius: 12px;
-}
-
-.desktop .rectangle-2 {
-  width: 460px;
-  height: 57px;
-  top: 258px;
-  left: 32px;
-  position: absolute;
-  background-color: #ffe4e9;
-  border-radius: 12px;
-}
-
-.desktop .rectangle-3 {
-  width: 460px;
-  height: 57px;
-  top: 331px;
-  left: 32px;
-  position: absolute;
-  background-color: #ffe4e9;
-  border-radius: 12px;
-}
-
-.desktop .rectangle-4 {
-  width: 460px;
-  height: 57px;
-  top: 404px;
-  left: 32px;
-  position: absolute;
-  background-color: #ffe4e9;
-  border-radius: 12px;
-}
-
-.desktop .ellipse {
-  position: absolute;
-  width: 72px;
-  height: 72px;
-  top: 73px;
-  left: 32px;
-  background-color: #f56883;
-  border-radius: 36px;
-}
-
-.desktop .text-wrapper-6 {
-  position: absolute;
-  top: 100px;
-  left: 52px;
-  font-family: "Pretendard-Bold", Helvetica;
-  font-weight: 700;
-  color: #ffffff;
-  font-size: 14px;
-  letter-spacing: 0;
-  line-height: normal;
-}
-
-.desktop .text-wrapper-7 {
-  position: absolute;
-  width: 327px;
-  top: 86px;
-  left: 150px;
-  font-family: "Pretendard-Medium", Helvetica;
-  font-weight: 500;
-  color: var(--color-text-neutral-default);
-  font-size: 14px;
-  letter-spacing: 0;
-  line-height: 22.4px;
-}
-
-.desktop .text-wrapper-8 {
-  position: absolute;
-  top: 423px;
-  left: 52px;
-  font-family: "Pretendard-Medium", Helvetica;
-  font-weight: 500;
-  color: var(--color-text-neutral-default);
-  font-size: 14px;
-  letter-spacing: 0;
-  line-height: normal;
-}
-
-.desktop .text-wrapper-9 {
-  position: absolute;
-  top: 277px;
-  left: 52px;
-  font-family: "Pretendard-Medium", Helvetica;
-  font-weight: 500;
-  color: var(--color-text-neutral-default);
-  font-size: 14px;
-  letter-spacing: 0;
-  line-height: normal;
-}
-
-.desktop .text-wrapper-10 {
-  position: absolute;
-  top: 350px;
-  left: 52px;
-  font-family: "Pretendard-Medium", Helvetica;
-  font-weight: 500;
-  color: var(--color-text-neutral-default);
-  font-size: 14px;
-  letter-spacing: 0;
-  line-height: normal;
-}
-
-.desktop .frame-4 {
-  position: absolute;
-  top: 517px;
-  left: 122px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.desktop .frame-5 {
-  justify-content: center;
-  padding: 12px 32px;
-  position: relative;
-  flex: 0 0 auto;
-  border-radius: 12px;
-  border: 2px solid;
-  border-color: #e5e5ea;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.desktop .frame-6 {
-  justify-content: center;
-  padding: 12px 32px;
-  position: relative;
-  flex: 0 0 auto;
-  background-color: #f56883;
-  border-radius: 12px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.desktop .text-wrapper-11 {
-  position: absolute;
-  top: 39px;
-  left: 100px;
-  font-family: "Paperlogy-7Bold", Helvetica;
-  font-weight: 700;
-  color: #f56883;
-  font-size: 32px;
-  letter-spacing: 0;
-  line-height: normal;
-  white-space: nowrap;
-}
-
-.desktop .overlap-wrapper {
-  position: absolute;
-  width: 528px;
-  height: 133px;
-  top: 98px;
-  left: 100px;
-}
-
-.desktop .overlap-5 {
-  position: relative;
-  width: 524px;
-  height: 133px;
-  background-color: #ffffff;
-  border-radius: 16px;
-}
-
-.desktop .overlap-group-2 {
-  position: absolute;
-  width: 460px;
-  height: 52px;
-  top: 65px;
-  left: 32px;
-  background-color: #ffe4e9;
-  border-radius: 15px;
-}
-
-.desktop .text-wrapper-12 {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  font-family: "Pretendard-Bold", Helvetica;
-  font-weight: 700;
-  color: #f56883;
-  font-size: 18px;
-  letter-spacing: 0;
-  line-height: normal;
-  white-space: nowrap;
+@media (max-width: 550px) {
+  .logo-title { font-size: 21px; margin-left: 10px;}
+  .card { padding: 14px 7px 18px 7px; font-size: 12px; }
+  .fb-row, .highlight-box, .highlight-box.small { padding: 7px 8px; font-size: 12px; }
+  .btn { font-size: 13px; padding: 8px 16px;}
+  .score-circle { width: 45px; height: 45px; font-size: 14px;}
 }
