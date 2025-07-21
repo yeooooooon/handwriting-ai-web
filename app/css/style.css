@@ -20,6 +20,10 @@ body, html {
   margin: 0 0 32px 70px;
   letter-spacing: 1px;
 }
+.logo-image{
+  width: 30px;
+  height: 30px;
+}
 .grid-2x2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
