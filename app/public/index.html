@@ -7,7 +7,10 @@
   <link rel="stylesheet" href="/static/style.css?v=333">
   <link rel="stylesheet" href="/static/globals.css?v=333">
   <link rel="stylesheet" href="/static/styleguide.css?v=333">
-  <!-- Pretendard, Paperlogy 폰트는 필요시 링크 추가!. -->
+  <style>
+    .hidden { display: none; }
+    .preview-image { max-height: 100px; margin-top: 10px; border: 1px solid #ccc; border-radius: 8px; }
+  </style>
 </head>
 <body>
   <div class="layout-bg">
@@ -16,48 +19,124 @@
         <img class="logo-image" src="/static/image/logo1.png" alt="">
         바른글씨
       </div>
-        <div class="grid-2x2">
+
+      <div class="grid-2x2">
+        <!-- 오늘의 문장 -->
         <div class="card today-sentence-card">
           <div class="card-title">오늘의 손글씨 문장</div>
           <div class="highlight-box1">저 넓은 세상에서 큰 꿈을 펼쳐라.</div>
         </div>
+
+        <!-- 점수 영역 -->
         <div class="card score-card">
           <div class="card-title">손글씨 점수</div>
           <div class="score-flex">
-            <div class="score-circle">96점</div>
-            <div class="highlight-box2 small">
-              획의 굵기가 일정해졌어요. 다음 단계도 도전해보세요!<br>
-              글자 간격이 아주 짜임새 있어요. 꾸준히 연습해요!
+            <div class="score-circle" id="score-result">-</div>
+            <div class="highlight-box2 small" id="feedback-text">
+              분석 후 결과가 여기에 표시됩니다.
             </div>
           </div>
         </div>
+
+        <!-- 업로드 -->
         <div class="card upload-card">
           <div class="card-title">손글씨 이미지 업로드</div>
           <div class="upload-desc">JPG, PNG 형식의 손글씨 이미지를 선택하거나 드래그하여 업로드하세요.</div>
           <div class="upload-box">
-            <div class="upload-icon">
-              <div class="upload-filelabel">바른<br>글씨</div>
-            </div>
+            <input type="file" id="imageInput" accept="image/*" onchange="previewImage()" style="margin-bottom: 10px;">
+            <img id="preview" class="preview-image hidden" alt="미리보기 이미지">
             <div class="upload-info">이미지를 선택하거나 여기에 드래그하세요.<br>JPG, JPEG, PNG 및 WEBP. 최대 20MB.</div>
-            <button class="btn blue1">손글씨 올리기</button>
+            <button class="btn blue1" onclick="submitImage()">손글씨 올리기</button>
           </div>
           <div class="btns">
-            <button class="btn gray">분석하기</button>
-            <button class="btn outline">초기화</button>
+            <button class="btn gray" onclick="submitImage()">분석하기</button>
+            <button class="btn outline" onclick="location.reload()">초기화</button>
           </div>
         </div>
+
+        <!-- 피드백 결과 -->
         <div class="card feedback-card">
           <div class="card-title">손글씨 피드백</div>
-          <div class="fb-row">자간을 조금 더 넓혀보세요</div>
-          <div class="fb-row">글자 기울기를 줄이면 더 깔끔해집니다</div>
-          <div class="fb-row">획 간 간격을 일정하게 맞춰보세요</div>
+          <ul id="error-list" class="fb-row" style="list-style: disc; padding-left: 20px;"></ul>
           <div class="btns">
-            <button class="btn upload">다시 올리기</button>
-            <button class="btn blue2">다른 문장 쓰기</button>
+            <button class="btn upload" onclick="document.getElementById('imageInput').click()">다시 올리기</button>
+            <button class="btn blue2" onclick="location.reload()">다른 문장 쓰기</button>
           </div>
         </div>
       </div>
+
+      <!-- 교정 이미지 표시 -->
+      <div class="card" style="margin-top: 30px;">
+        <div class="card-title">교정된 이미지</div>
+        <img id="corrected-image" class="preview-image hidden" alt="교정 이미지" style="max-width: 100%; border: 1px solid #ccc;">
+      </div>
     </div>
   </div>
+
+  <script>
+    function previewImage() {
+      const fileInput = document.getElementById("imageInput");
+      const file = fileInput.files[0];
+      const preview = document.getElementById("preview");
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          preview.src = e.target.result;
+          preview.classList.remove("hidden");
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.classList.add("hidden");
+        preview.src = "";
+      }
+    }
+
+    async function submitImage() {
+      const fileInput = document.getElementById("imageInput");
+      const file = fileInput.files[0];
+      if (!file) {
+        alert("이미지를 선택해주세요!");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const res = await fetch(`http://${window.location.hostname}:8000/evaluate`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const error = await res.json();
+          alert("분석 실패: " + error.detail);
+          return;
+        }
+
+        const result = await res.json();
+        document.getElementById("score-result").textContent = `${result.score}점`;
+        document.getElementById("feedback-text").innerHTML = result.feedback;
+
+        const errorList = document.getElementById("error-list");
+        errorList.innerHTML = "";
+        const lines = result.feedback.split(/<br>/);
+        for (const line of lines) {
+          if (line.trim()) {
+            const li = document.createElement("li");
+            li.innerHTML = line.trim();
+            errorList.appendChild(li);
+          }
+        }
+
+        const img = document.getElementById("corrected-image");
+        img.src = result.corrected_image;
+        img.classList.remove("hidden");
+      } catch (err) {
+        console.error("분석 중 오류 발생:", err);
+        alert("서버 연결 실패 또는 오류 발생");
+      }
+    }
+  </script>
 </body>
 </html>

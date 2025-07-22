@@ -50,19 +50,30 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
     recognized_text = ''.join(text_result) if text_result else ""
     clean_text = ''.join([c for c in recognized_text if c.strip()])
 
-    # 5. 교정 이미지 준비
-    corrected_image = Image.new("RGB", image.size, (255, 255, 255))
-    draw = ImageDraw.Draw(corrected_image)
+    # 5. 교정 이미지 준비 (수정된 부분 시작)
+    char_width = 60
+    padding = 40
+    line_height = 120
+    canvas_width = padding * 2 + len(clean_text) * char_width
+    canvas_height = line_height
 
-    total_score = 0.0
-    perfect_chars = []
-    okay_chars = []
-    poor_chars = []
+    corrected_image = Image.new("RGB", (canvas_width, canvas_height), (255, 255, 255))
+    draw = ImageDraw.Draw(corrected_image)
+    # (수정된 부분 끝)
+
+    total_score = 0
     score_list = []
+    perfect_chars, okay_chars, poor_chars = [], [], []
     feedback_list = []
 
     length = min(len(clean_text), len(char_images))
-
+    if length == 0:
+        return JSONResponse(content={
+            "score": 0,
+            "feedback": "글자를 인식하지 못했습니다.",
+            "corrected_image": "",
+        })
+    
     for i in range(length):
         ch = clean_text[i]
         char_img = char_images[i]
@@ -88,8 +99,8 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
 
         # SSIM → 점수 보정 (0.1~0.6 사이를 50~100점으로 맵핑)
         def scale_score(sim):
-            scaled = (sim - 0.1) / (0.6 - 0.1) * 50 + 50  # 최소 50점 ~ 최대 100점
-            return max(0, min(100, scaled))  # 0~100 범위로 클램핑
+            scaled = (sim - 0.1) / (0.6 - 0.1) * 50 + 50
+            return max(0, min(100, scaled))
 
         score = int(scale_score(sim))
         total_score += score
@@ -103,9 +114,10 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
             else:
                 perfect_chars.append(ch)
 
-        draw.text((10 + i * 50, 10), ch, font=standard_font, fill=(0, 0, 0))
+        # (수정된 부분: 좌표에 padding 반영)
+        draw.text((padding + i * char_width, (canvas_height - 48) // 2), ch, font=standard_font, fill=(0, 0, 0))
 
-    # 그룹별 피드백 메시지 구성
+    # 피드백 구성
     if perfect_chars:
         feedback_list.append(f"{', '.join(f'\'{c}\'' for c in perfect_chars)} 은(는) 완벽합니다.")
     if okay_chars:
@@ -113,10 +125,8 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
     if poor_chars:
         feedback_list.append(f"{', '.join(f'\'{c}\'' for c in poor_chars)} 은(는) 기준과 많이 다릅니다.")
 
-    # 평균 점수 및 피드백 메시지
     avg_score = total_score / length if length > 0 else 0
     feedback_msg = "<br>".join(feedback_list) + "<br><br>점수 목록:<br>" + "<br>".join(score_list) if feedback_list else "대체로 잘 쓰셨습니다."
-
 
     # 6. 결과 이미지 base64 인코딩
     buf = BytesIO()
