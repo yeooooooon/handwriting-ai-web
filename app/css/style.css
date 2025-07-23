@@ -130,7 +130,15 @@ body, html {
   position: relative;
 }
 
-.upload-icon {
+.preview-image { max-height: 100px; margin-top: 10px; border: 1px solid #ccc; border-radius: 8px; }
+
+/* 드래그 중일 때 강조되는 스타일 */
+.upload-box.dragover {
+  background: rgba(28, 100, 255, 0.05);
+  border-color: #1c64ff;
+}
+
+/* .upload-icon {
   width: 60px; height: 70px;
   margin: 0 auto 2px;
   background-image: url('https://c.animaapp.com/T8Qt5Cv7/img/icon.svg');
@@ -140,19 +148,19 @@ body, html {
   display: flex;
   align-items: center;
   justify-content: center;
-}
+} */
 
-.upload-filelabel {
+/* .upload-filelabel {
   font-family: 'Paperlogy-7Bold', sans-serif;
   font-size: 12px; color: #757575;
   line-height: 1.2;
   position: absolute;
   top: 50%; left: 50%;
-  transform: translate(-50%, -13%); /* 아이콘 중간보다 살짝 위쪽에 */
+  transform: translate(-50%, -13%); /*아이콘 중간보다 살짝 위쪽에
   width: 100%;
   text-align: center;
   pointer-events: none;
-}
+} */
 
 .upload-info {
   font-size: 13px; color: #505050; margin: 0 auto 18px;
@@ -162,7 +170,7 @@ body, html {
   flex-wrap: wrap;
   gap: 14px;
   margin-top: 12px;
-  justify-content: center;  /* <- 추가! */
+  justify-content: center; /*가운데로 위치*/
 }
 .btn {
   padding: 11px 28px;
