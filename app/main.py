@@ -6,11 +6,13 @@ from pathlib import Path
 import os
 
 from app.handwriting_feedback_api import router as handwriting_router
+#from app.paddleOCR_api import router as evaluate_router
 
 BASE_DIR = Path(__file__).resolve().parent  # main.py가 있는 폴더.
 
 app = FastAPI()
 app.include_router(handwriting_router)
+# app.include_router(evaluate_router)
 
 # ─── 절대경로로 static mount ───────────────────────────
 app.mount(
@@ -28,3 +30,8 @@ def serve_index():
 @app.get("/test", response_class=FileResponse)
 def serve_test():
     return BASE_DIR / "public" / "test.html"
+
+# test.html 서빙
+#@app.get("/test2", response_class=FileResponse)
+#def serve_test2():
+#    return BASE_DIR / "public" / "test2.html"
