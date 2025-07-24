@@ -1,17 +1,24 @@
+/* 기본 스타일 리셋 및 뷰포트 설정 */
 body, html {
   margin: 0; padding: 0; width: 100vw; height: 100vh;
   font-family: 'Pretendard', 'sans-serif';
 }
+
+/* 전체 배경 색상 및 최소 크기 설정 */
 .layout-bg {
   background: #efefef;
   min-height: 100vh;
   min-width: 100vw;
 }
+
+/* 메인 컨테이너 중앙 정렬 및 패딩 */
 .main-wrap {
   max-width: 1440px;
   margin: 0 auto;
   padding: 30px 0 50px 0;
 }
+
+/* 로고 타이틀 */
 .logo-title {
   color: #1c64ff;
   font-size: 31px;
@@ -20,10 +27,14 @@ body, html {
   margin: 0 0 32px 70px;
   letter-spacing: 1px;
 }
+
+/* 로고 이미지 */
 .logo-image{
   width: 30px;
   height: 30px;
 }
+
+/* 2x2 그리드 레이아웃 구성 */
 .grid-2x2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -33,9 +44,9 @@ body, html {
   margin: 0 auto;
 }
 
-/* 각 카드별로 클래스명 부여.! */
+/* 각 카드별로 클래스명 부여! */
 .today-sentence-card {
-  /* 오늘의 문장 카드만 스타일. */
+  /* 오늘의 문장 카드만 스타일 */
   min-height: 10px;
   padding: 18px 20px 12px 20px;
 }
@@ -58,6 +69,7 @@ body, html {
   padding: 14px 20px 14px 20px;
 }
 
+/* 카드 공통 스타일 */
 .card {
   background: #fff;
   border-radius: 20px;
@@ -69,24 +81,32 @@ body, html {
   justify-content: flex-start;
   min-width: 320px;
 }
+
+/* 카드 제목 스타일 */
 .card-title {
   font-family: 'Pretendard-Bold', sans-serif;
   font-size: 22px;
   margin-bottom: 6px;
 }
+
+/* 오늘의 손글씨 문장 박스 및 텍스트 박스 */
 .today-sentence .highlight-box {
   background: #dae1f8;
   color: #1c64ff;
   font-size: 20px;
   font-family: 'Pretendard-Bold', sans-serif;
   border-radius: 12px;
-  padding: 16px 26px;
+  padding: 16px 30px;
 }
+
+/* 점수 영역 레이아웃 */
 .score-flex {
   display: flex;
   align-items: center;
   gap: 24px;
 }
+
+/* 점수 원형 표시 */
 .score-circle {
   width: 80px; height: 80px;
   background: #1c64ff;
@@ -97,14 +117,24 @@ body, html {
   font-family: 'Pretendard-Bold', sans-serif;
   margin-right: 10px;
 }
+
+/* 오늘의 손글씨 문장 텍스트 박스 */
 .highlight-box1 {
   background: #dae1f8;
   color: #1c64ff;
   border-radius: 12px;
+  height: 80px;
   padding: 16px 20px;
-  font-size: 15px;
+  font-size: 20px;
   font-family: 'Pretendard', sans-serif;
+  display: flex; 
+  justify-content: center; /* 가로(수평) 기준으로 가운데 정렬*/
+  align-items: center; /* 세로(수직) 기준으로 가운데 정렬 */
+  text-align: center; /* 줄 바꿈된 각 줄도 가운데 정렬 */
+  line-height: 1.5; /* 줄 간격 1.5배 */
 }
+
+/* 손글씨 점수 텍스트 박스 */
 .highlight-box2 {
   background: #dae1f8;
   color: #171717;
@@ -112,14 +142,20 @@ body, html {
   padding: 16px 20px;
   font-size: 14px;
   font-family: 'Pretendard', sans-serif;
-  line-height: 20px;
+  line-height: 1.5; /* 줄 간격 1.5배 */
 }
-.highlight-box.small { font-size: 12px; padding: 14px 16px;}
+
+/* 분석 결과 점수 박스 */
+.highlight-box.small { font-size: 12px; padding: 14px 16px;} 
+
+/* 업로드 설명 */
 .upload-desc {
   color: #232323;
   font-size: 15px;
   margin-bottom: 6px;
 }
+
+/* 업로드 박스 */
 .upload-box {
   border: 2.5px dashed #dae1f8;
   border-radius: 16px;
@@ -130,6 +166,7 @@ body, html {
   position: relative;
 }
 
+/* 이미지 미리보기 */
 .preview-image { max-height: 100px; margin-top: 10px; border: 1px solid #ccc; border-radius: 8px; }
 
 /* 드래그 중일 때 강조되는 스타일 */
@@ -162,9 +199,12 @@ body, html {
   pointer-events: none;
 } */
 
+/* 업로드 정보 */
 .upload-info {
   font-size: 13px; color: #505050; margin: 0 auto 18px;
 }
+
+/* 버튼 그룹 레이아웃 */
 .btns {
   display: flex;
   flex-wrap: wrap;
@@ -172,6 +212,8 @@ body, html {
   margin-top: 12px;
   justify-content: center; /*가운데로 위치*/
 }
+
+/* 버튼 공통 스타일 */
 .btn {
   padding: 11px 28px;
   border-radius: 9px;
@@ -182,29 +224,42 @@ body, html {
   font-family: 'Pretendard-Bold', sans-serif;
   transition: background 0.13s, color 0.13s, border 0.13s;
 }
+
+/* 버튼 종류별 색상 */
+/* 손글씨 올리기 버튼 */
 .btn.blue1 {
   background: #fff;
   color: #1c64ff;
   border: 3px solid #1c64ff;
 }
+
+/* 다른 문장 쓰기 버튼 */
 .btn.blue2 {
   background: #1c64ff;
   color: #fff;
 }
+
+/* 분석하기 버튼 */
 .btn.gray {
   background: #bababa;
   color: #fff;
 }
+
+/* 다시 올리기 버튼 */
 .btn.upload {
   background: #fff;
   color: #171717;
   border: 3px solid #e5e5ea;
 }
+
+/* 초기화 버튼 */
 .btn.outline {
   background: #fff;
   color: #171717;
   border: 3px solid #e5e5ea;
 }
+
+/* 피드백 행 스타일 */
 .fb-row {
   background: #dae1f8;
   color: #171717;
