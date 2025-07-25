@@ -134,3 +134,4 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
         "feedback": feedback_msg,
         "corrected_image": f"data:image/png;base64,{img_base64}"
     })
+    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

@@ -193,7 +193,12 @@
         }
 
         // 피드백 텍스트
-        document.getElementById("feedback-text").innerHTML = result.feedback;
+        // AI 피드백 텍스트
+        document.getElementById("feedback-text").innerHTML =
+          `<strong>🤖 AI 피드백:</strong><br>${result.ai_feedback}<br><br>
+          <strong>📋 세부 항목:</strong><br>${result.feedback}`;
+
+
 
         // 교정 이미지 출력
         const img = document.getElementById("corrected-image");

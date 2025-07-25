@@ -8,6 +8,7 @@ import base64
 import cv2
 from skimage.metrics import structural_similarity as ssim
 from skimage.transform import resize
+from app.ai_feedback import generate_ai_feedback
 import os
 
 router = APIRouter()
@@ -133,9 +134,25 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
     corrected_image.save(buf, format="PNG")
     img_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
 
+    # 7. AI 피드백 생성
+    score_dict = {}
+    for item in score_list:
+        try:
+            ch, score = item.split(":")
+            ch = ch.strip().strip("'")
+            score = int(score.strip().replace("점", ""))
+            score_dict[ch] = score
+        except:
+            continue
+
+    # AI 피드백 생성 (OpenAI API 연동)
+    ai_feedback = generate_ai_feedback(clean_text, score_dict)
+
+    # 최종 결과 리턴
     return JSONResponse(content={
         "recognized_text": clean_text,
         "score": round(avg_score, 2),
         "feedback": feedback_msg,
+        "ai_feedback": ai_feedback,
         "corrected_image": f"data:image/png;base64,{img_base64}"
-    })
+    })  
