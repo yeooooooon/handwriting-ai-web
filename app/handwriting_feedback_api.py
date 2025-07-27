@@ -120,11 +120,11 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
 
     # 피드백 구성
     if perfect_chars:
-        feedback_list.append(f"{', '.join(f'\'{c}\'' for c in perfect_chars)} 은(는) 완벽합니다.")
+        feedback_list.append(f"{', '.join(repr(c) for c in perfect_chars)} 은(는) 완벽합니다.")
     if okay_chars:
-        feedback_list.append(f"{', '.join(f'\'{c}\'' for c in okay_chars)} 은(는) 조금 더 다듬으면 좋습니다.")
+        feedback_list.append(f"{', '.join(repr(c) for c in okay_chars)} 은(는) 조금 더 다듬으면 좋습니다.")
     if poor_chars:
-        feedback_list.append(f"{', '.join(f'\'{c}\'' for c in poor_chars)} 은(는) 기준과 많이 다릅니다.")
+        feedback_list.append(f"{', '.join(repr(c) for c in poor_chars)} 은(는) 기준과 많이 다릅니다.")
 
     avg_score = total_score / length if length > 0 else 0
     feedback_msg = "<br>".join(feedback_list) + "<br><br>점수 목록:<br>" + "<br>".join(score_list) if feedback_list else "대체로 잘 쓰셨습니다."

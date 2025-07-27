@@ -12,32 +12,15 @@
   </style>
 </head>
 <body>
+  <header class="site-header">
+        <img class="logo-image" src="/static/image/logo1.png" alt="로고">
+        <span class="logo-title">바른글씨</span>
+    </header>
   <div class="layout-bg">
     <div class="main-wrap">
-      <div class="logo-title">
-        <img class="logo-image" src="/static/image/logo1.png" alt="">
-        바른글씨
-      </div>
-
+     
       <div class="grid-2x2">
-        <!-- 오늘의 문장 -->
-        <div class="card today-sentence-card">
-          <div class="card-title">오늘의 손글씨 문장</div>
-          <div class="highlight-box1">저 넓은 세상에서 큰 꿈을 펼쳐라.</div>
-        </div>
-
-        <!-- 점수 영역 -->
-        <div class="card score-card">
-          <div class="card-title">손글씨 점수</div>
-          <div class="score-flex">
-            <div class="score-circle" id="score-result">-</div>
-            <div class="highlight-box2 small" id="feedback-text">
-              분석 후 결과가 여기에 표시됩니다.
-            </div>
-          </div>
-        </div>
-
-        <!-- 업로드 -->
+           <!-- 업로드 -->
         <div class="card upload-card">
           <div class="card-title">손글씨 이미지 업로드</div>
           <div class="upload-desc">JPG, PNG 형식의 손글씨 이미지를 선택하거나 드래그하여 업로드하세요.</div>
@@ -53,24 +36,39 @@
           </div>
         </div>
 
-        <!-- 피드백 결과 -->
-        <div class="card feedback-card">
-          <div class="card-title">손글씨 피드백</div>
-          <ul id="error-list" class="fb-row" style="list-style: disc; padding-left: 20px;"></ul>
-          <div class="btns">
-            <button class="btn upload" onclick="previewImage()">다시 올리기</button>
-            <button class="btn blue2" onclick="location.reload()">다른 문장 쓰기</button>
+        <!-- 점수 영역 -->
+        <div class="card score-card">
+          <div class="card-title">손글씨 점수</div>
+          <div class="score-flex">
+            <div class="score-circle" id="score-result">-</div>
+            <div class="highlight-box2 small" id="feedback-text">
+              분석 후 결과가 여기에 표시됩니다.
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 교정 이미지 표시 -->
+         <!-- 교정 이미지 표시 -->
       <div class="card" style="margin-top: 30px;">
         <div class="card-title">교정된 이미지</div>
         <img id="corrected-image" class="preview-image hidden" alt="교정 이미지" style="max-width: 100%; border: 1px solid #ccc;">
       </div>
+
+        
+
+        <!-- 피드백 결과 -->
+        <div class="card feedback-card">
+          <div class="card-title">손글씨 피드백</div>
+          <ul id="error-list" class="fb-row" style="list-style: disc; padding-left: 20px;"></ul>
+        </div>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!--footer 저작권-->
+      <footer class="footer-copyright">
+      © 2025 바른글씨. All rights reserved.
+      </footer>
 
   <script>
   // 전역 변수에 선택된 파일 저장

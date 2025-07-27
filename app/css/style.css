@@ -14,24 +14,37 @@ body, html {
 /* 메인 컨테이너 중앙 정렬 및 패딩 */
 .main-wrap {
   max-width: 1440px;
-  margin: 0 auto;
-  padding: 30px 0 50px 0;
+  margin: 0 0;
 }
+
+.site-header {
+  width: 100%;
+  height: 10%;
+  background-color: #fff;
+  padding: 16px 40px;
+  box-sizing: border-box;
+}
+
 
 /* 로고 타이틀 */
 .logo-title {
+  align-items: center; 
   color: #1c64ff;
   font-size: 31px;
   font-family: 'Paperlogy-7Bold', 'Pretendard', sans-serif;
   font-weight: bold;
   margin: 0 0 32px 70px;
   letter-spacing: 1px;
+  margin-left: 60px;
+  gap: 10px;
+  margin: 0; /* 혹시라도 기본 margin 있을 경우 제거 */
 }
 
 /* 로고 이미지 */
 .logo-image{
   width: 30px;
   height: 30px;
+  margin: 0; /* 불필요한 마진 제거 */
 }
 
 /* 2x2 그리드 레이아웃 구성 */
@@ -42,6 +55,7 @@ body, html {
   gap: 30px 30px;
   max-width: 1100px;
   margin: 0 auto;
+  padding-top: 3%;
 }
 
 /* 각 카드별로 클래스명 부여! */
@@ -81,6 +95,7 @@ body, html {
   justify-content: flex-start;
   min-width: 320px;
 }
+
 
 /* 카드 제목 스타일 */
 .card-title {
@@ -233,23 +248,10 @@ body, html {
   border: 3px solid #1c64ff;
 }
 
-/* 다른 문장 쓰기 버튼 */
-.btn.blue2 {
-  background: #1c64ff;
-  color: #fff;
-}
-
 /* 분석하기 버튼 */
 .btn.gray {
   background: #bababa;
   color: #fff;
-}
-
-/* 다시 올리기 버튼 */
-.btn.upload {
-  background: #fff;
-  color: #171717;
-  border: 3px solid #e5e5ea;
 }
 
 /* 초기화 버튼 */
@@ -269,6 +271,15 @@ body, html {
   font-size: 15px;
   height: 50px;
   line-height: 23px;
+}
+
+/*footer 설정*/
+.footer-copyright {
+  text-align: center;
+  padding: 30px 0;
+  font-size: 14px;
+  color: #888;
+  background-color: #efefef;
 }
 
 /* 반응형 */
@@ -292,3 +303,10 @@ body, html {
   .btn { font-size: 13px; padding: 8px 16px;}
   .score-circle { width: 45px; height: 45px; font-size: 14px;}
 }
+@media (max-width: 768px) {
+  .today-sentence-card,
+  .score-card {
+    width: 100%;
+  }
+}
+
