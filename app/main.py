@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
+from fastapi.responses import JSONResponse
+import random
 import os
 
 from app.handwriting_feedback_api import router as handwriting_router
@@ -13,6 +15,13 @@ BASE_DIR = Path(__file__).resolve().parent  # main.py가 있는 폴더.
 app = FastAPI()
 app.include_router(handwriting_router)
 # app.include_router(evaluate_router)
+
+sentences = [
+    "저 넓은 세상에서 큰 꿈을 펼쳐라",
+    "한글은 아름다운 문자입니다",
+    "노력은 배신하지 않는다",
+    "작은 실천이 큰 변화를 만든다"
+]
 
 # ─── 절대경로로 static mount ───────────────────────────
 app.mount(
@@ -30,6 +39,16 @@ def serve_index():
 @app.get("/test", response_class=FileResponse)
 def serve_test():
     return BASE_DIR / "public" / "test.html"
+
+# test.html 서빙
+@app.get("/daily", response_class=FileResponse)
+def serve_daily():
+    return BASE_DIR / "public" / "daily_sentence.html"
+
+@app.get("/daily_sentence")
+def get_daily_sentence():
+    sentence = random.choice(sentences)
+    return JSONResponse(content={"sentence": sentence})
 
 # test.html 서빙
 #@app.get("/test2", response_class=FileResponse)
