@@ -23,6 +23,21 @@ if not os.path.exists(font_path):
 standard_font = ImageFont.truetype(font_path, size=48)
 resize_shape = (128, 128)
 
+def format_score_list_html(score_list):
+    rows = []
+    total = len(score_list)
+    for i in range(0, total, 3):
+        row = score_list[i:i+3]
+        cells = []
+        for j, item in enumerate(row):
+            is_last = (i + j == total - 1)
+            display = item if is_last else f"{item},"
+            # padding-right를 각 셀에 적용 (약 2탭 정도 여유)
+            cells.append(f"<td style='padding-right: 2em;'>{display}</td>")
+        rows.append(f"<tr>{''.join(cells)}</tr>")
+    return "<table style='border-spacing: 4px 8px; font-family: sans-serif; font-size: 16px;'>{}</table>".format("".join(rows))
+
+
 @router.post("/evaluate")
 async def evaluate_handwriting(file: UploadFile = File(...)):
     if file.content_type not in ("image/png", "image/jpeg"):
@@ -58,8 +73,8 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
     canvas_width = padding * 2 + len(clean_text) * char_width
     canvas_height = line_height
 
-    corrected_image = Image.new("RGB", (canvas_width, canvas_height), (255, 255, 255))
-    draw = ImageDraw.Draw(corrected_image)
+    #corrected_image = Image.new("RGB", (canvas_width, canvas_height), (255, 255, 255))
+    #draw = ImageDraw.Draw(corrected_image)
     # (수정된 부분 끝)
 
     total_score = 0
@@ -74,6 +89,8 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
             "feedback": "글자를 인식하지 못했습니다.",
             "corrected_image": "",
         })
+    
+    corrected_text = ""
     
     for i in range(length):
         ch = clean_text[i]
@@ -116,7 +133,9 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
                 perfect_chars.append(ch)
 
         # (수정된 부분: 좌표에 padding 반영)
-        draw.text((padding + i * char_width, (canvas_height - 48) // 2), ch, font=standard_font, fill=(0, 0, 0))
+        #draw.text((padding + i * char_width, (canvas_height - 48) // 2), ch, font=standard_font, fill=(0, 0, 0))
+
+        corrected_text += ch
 
     # 피드백 구성
     if perfect_chars:
@@ -127,12 +146,16 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
         feedback_list.append(f"{', '.join(repr(c) for c in poor_chars)} 은(는) 기준과 많이 다릅니다.")
 
     avg_score = total_score / length if length > 0 else 0
-    feedback_msg = "<br>".join(feedback_list) + "<br><br>점수 목록:<br>" + "<br>".join(score_list) if feedback_list else "대체로 잘 쓰셨습니다."
+
+    # feedback_msg = "<br>".join(feedback_list) + "<br><br>점수 목록:<br>" + "<br>".join(score_list) if feedback_list else "대체로 잘 쓰셨습니다."
+
+    score_table_html = format_score_list_html(score_list)
+    feedback_msg = "<br>".join(feedback_list) + "<br><br><strong>점수 목록:</strong><br>" + score_table_html
 
     # 6. 결과 이미지 base64 인코딩
-    buf = BytesIO()
-    corrected_image.save(buf, format="PNG")
-    img_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+    #buf = BytesIO()
+    #corrected_image.save(buf, format="PNG")
+    #img_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
 
     # 7. AI 피드백 생성
     score_dict = {}
@@ -151,8 +174,9 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
     # 최종 결과 리턴
     return JSONResponse(content={
         "recognized_text": clean_text,
+        "corrected_text": corrected_text,
         "score": round(avg_score, 2),
         "feedback": feedback_msg,
         "ai_feedback": ai_feedback,
-        "corrected_image": f"data:image/png;base64,{img_base64}"
+        # "corrected_image": f"data:image/png;base64,{img_base64}"
     })  

@@ -49,8 +49,8 @@
 
          <!-- 교정 이미지 표시 -->
       <div class="card" style="margin-top: 30px;">
-        <div class="card-title">교정된 이미지</div>
-        <img id="corrected-image" class="preview-image hidden" alt="교정 이미지" style="max-width: 100%; border: 1px solid #ccc;">
+        <div class="card-title">인식된 글자</div>
+        <p id="corrected-text" style="font-size: 24px; font-family: 'Noto Sans KR', sans-serif;">
       </div>
 
         
@@ -161,9 +161,11 @@
         }
       });
 
-      const img = document.getElementById("corrected-image");
-      img.src = result.corrected_image;
-      img.classList.remove("hidden");
+      // const img = document.getElementById("corrected-image");
+      // img.src = result.corrected_image;
+      // img.classList.remove("hidden");
+      document.getElementById("corrected-text").textContent = result.corrected_text;
+
     } catch (err) {
       console.error("분석 중 오류 발생:", err);
       alert("서버 연결 실패 또는 오류 발생");
