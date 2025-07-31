@@ -233,7 +233,7 @@ body, html {
   padding: 11px 28px;
   border-radius: 9px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 550;
   border: none;
   cursor: pointer;
   font-family: 'Pretendard-Bold', sans-serif;
@@ -258,7 +258,7 @@ body, html {
 .btn.outline {
   background: #fff;
   color: #171717;
-  border: 3px solid #e5e5ea;
+  border: 3px solid #bababa;
 }
 
 /* 피드백 행 스타일 */

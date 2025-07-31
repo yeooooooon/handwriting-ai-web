@@ -6,7 +6,7 @@
   <title>바른글씨</title>
   <link rel="stylesheet" href="/static/globals.css?v=333">
   <link rel="stylesheet" href="/static/styleguide.css?v=333">
-  <link rel="stylesheet" href="/static/style.css?v=334">
+  <link rel="stylesheet" href="/static/style.css?v=333">
   <style>
     .hidden { display: none; }
   </style>
@@ -28,10 +28,10 @@
             <!-- <input type="file" id="imageInput" accept="image/*" onchange="previewImage()" style="margin-bottom: 10px;" display=""> -->
             <img id="preview" class="preview-image hidden" alt="미리보기 이미지">
             <div class="upload-info">이미지를 선택하거나 여기에 드래그하세요.<br><br> JPG, JPEG, PNG 및 WEBP. 최대 20MB.</div>
-            <button class="btn blue1" onclick="previewImage()">손글씨 올리기</button>
+            <button class="btn gray" onclick="previewImage()">파일 올리기</button>
           </div>
           <div class="btns">
-            <button class="btn gray" onclick="submitImage()">분석하기</button>
+            <button class="btn blue1" onclick="submitImage()">분석하기</button>
             <button class="btn outline" onclick="location.reload()">초기화</button>
           </div>
         </div>
@@ -70,11 +70,10 @@
       © 2025 바른글씨. All rights reserved.
       </footer>
 
-  <script>
-  // 전역 변수에 선택된 파일 저장
+  <!-- 생략된 head/body 등은 기존과 동일하므로 수정된 script 부분만 아래에 집중해서 보여드릴게요 -->
+<script>
   let selectedFile = null;
 
-  // 손글씨 올리기 버튼 → 파일 선택창 + 미리보기
   function previewImage() {
     const input = document.createElement("input");
     input.type = "file";
@@ -84,12 +83,13 @@
       if (!file) return;
       selectedFile = file;
 
-      // 미리보기 표시
       const preview = document.getElementById("preview");
       const reader = new FileReader();
       reader.onload = ev => {
         preview.src = ev.target.result;
         preview.classList.remove("hidden");
+        document.querySelector('.upload-info').style.display = 'none'; //설명 숨기기
+        document.querySelector('.btn.gray').style.display = 'none'; //파일 올리기 숨기기
       };
       reader.readAsDataURL(file);
     };
@@ -98,35 +98,33 @@
 
   const uploadBox = document.querySelector('.upload-box');
 
-  // 드래그 오버 → 스타일 추가
   uploadBox.addEventListener('dragover', e => {
     e.preventDefault();
     uploadBox.classList.add('dragover');
   });
 
-  // 드래그 리브 → 스타일 제거
   uploadBox.addEventListener('dragleave', e => {
     e.preventDefault();
     uploadBox.classList.remove('dragover');
   });
 
-  // 파일 드롭 → 미리보기 로직 호출
   uploadBox.addEventListener('drop', e => {
     e.preventDefault();
     uploadBox.classList.remove('dragover');
     const file = e.dataTransfer.files[0];
     if (!file) return;
     selectedFile = file;
-    // FileReader로 preview 처리...
+
     const reader = new FileReader();
     reader.onload = ev => {
       document.getElementById("preview").src = ev.target.result;
       document.getElementById("preview").classList.remove("hidden");
+      document.querySelector('.upload-info').style.display = 'none'; //설명 숨기기
+      document.querySelector('.btn.gray').style.display = 'none'; //파일 올리기 숨기기
     };
     reader.readAsDataURL(file);
   });
 
-    // 분석 요청 시 FormData에 담아 전송
   async function submitImage() {
     if (!selectedFile) {
       alert("이미지를 선택해주세요!");
@@ -147,7 +145,6 @@
       }
       const result = await res.json();
 
-      // 점수, 피드백, 교정 이미지 처리 (기존 코드 재활용)
       document.getElementById("score-result").textContent = `${result.score}점`;
       document.getElementById("feedback-text").innerHTML = result.feedback;
 
@@ -161,9 +158,6 @@
         }
       });
 
-      // const img = document.getElementById("corrected-image");
-      // img.src = result.corrected_image;
-      // img.classList.remove("hidden");
       document.getElementById("corrected-text").textContent = result.corrected_text;
 
     } catch (err) {
@@ -171,6 +165,6 @@
       alert("서버 연결 실패 또는 오류 발생");
     }
   }
-  </script>
+</script>
 </body>
 </html>
