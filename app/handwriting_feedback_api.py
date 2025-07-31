@@ -22,7 +22,9 @@ if not os.path.exists(font_path):
 
 standard_font = ImageFont.truetype(font_path, size=48)
 resize_shape = (128, 128)
+MAX_CHAR_LIMIT = 20  # 최대 글자 수 제한
 
+# 점수 테이블을 HTML로 포맷
 def format_score_list_html(score_list):
     rows = []
     total = len(score_list)
@@ -32,18 +34,16 @@ def format_score_list_html(score_list):
         for j, item in enumerate(row):
             is_last = (i + j == total - 1)
             display = item if is_last else f"{item},"
-            # padding-right를 각 셀에 적용 (약 2탭 정도 여유)
             cells.append(f"<td style='padding-right: 2em;'>{display}</td>")
         rows.append(f"<tr>{''.join(cells)}</tr>")
-    return "<table style='border-spacing: 4px 8px; font-family: sans-serif; font-size: 16px;'>{}</table>".format("".join(rows))
-
+    return "<table style='border-spacing: 4px 8px; font-family: sans-serif; font-size: 16px;'>" + "".join(rows) + "</table>"
 
 @router.post("/evaluate")
 async def evaluate_handwriting(file: UploadFile = File(...)):
     if file.content_type not in ("image/png", "image/jpeg"):
         raise HTTPException(status_code=400, detail="이미지 파일만 업로드 가능합니다.")
 
-    # 1. 원본 이미지 처리
+    # 1. 원본 이미지 처리 및 이진화
     image = Image.open(file.file).convert("RGB")
     gray = np.array(image.convert("L"))
     _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
@@ -53,7 +53,7 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
     char_images = []
     for cnt in contours:
         x, y, w, h = cv2.boundingRect(cnt)
-        if w * h < 100:  # 너무 작은 노이즈 제거
+        if w * h < 100:
             continue
         char_crop = binary[y:y+h, x:x+w]
         char_images.append((x, char_crop))
@@ -66,40 +66,43 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
     recognized_text = ''.join(text_result) if text_result else ""
     clean_text = ''.join([c for c in recognized_text if c.strip()])
 
-    # 5. 교정 이미지 준비 (수정된 부분 시작)
+    # 5. 최대 글자 수 초과 시 잘라내기
+    notify_exceeded = False
+    if len(clean_text) > MAX_CHAR_LIMIT:
+        clean_text = clean_text[:MAX_CHAR_LIMIT]
+        notify_exceeded = True
+
+    # 6. 교정용 이미지 캔버스 사이즈 계산
     char_width = 60
     padding = 40
     line_height = 120
     canvas_width = padding * 2 + len(clean_text) * char_width
     canvas_height = line_height
 
-    #corrected_image = Image.new("RGB", (canvas_width, canvas_height), (255, 255, 255))
-    #draw = ImageDraw.Draw(corrected_image)
-    # (수정된 부분 끝)
-
     total_score = 0
     score_list = []
     perfect_chars, okay_chars, poor_chars = [], [], []
     feedback_list = []
 
-    length = min(len(clean_text), len(char_images))
+    length = min(len(clean_text), len(char_images), MAX_CHAR_LIMIT)
     if length == 0:
         return JSONResponse(content={
             "score": 0,
             "feedback": "글자를 인식하지 못했습니다.",
             "corrected_image": "",
         })
-    
+
     corrected_text = ""
-    
+
+    # 7. 각 글자 비교 및 점수 계산
     for i in range(length):
         ch = clean_text[i]
         char_img = char_images[i]
 
-        # 사용자 이미지 리사이즈
+        # 사용자 글자 리사이즈
         char_resized = resize(char_img, resize_shape, preserve_range=True).astype("uint8")
 
-        # 기준 글자 이미지 생성 (중앙 정렬)
+        # 기준 글자 이미지 생성
         font_img = Image.new("L", resize_shape, color=255)
         draw_font = ImageDraw.Draw(font_img)
         bbox = standard_font.getbbox(ch)
@@ -115,7 +118,7 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
         except:
             sim = 0.0
 
-        # SSIM → 점수 보정 (0.1~0.6 사이를 50~100점으로 맵핑)
+        # SSIM → 점수 보정
         def scale_score(sim):
             scaled = (sim - 0.1) / (0.6 - 0.1) * 50 + 50
             return max(0, min(100, scaled))
@@ -132,12 +135,9 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
             else:
                 perfect_chars.append(ch)
 
-        # (수정된 부분: 좌표에 padding 반영)
-        #draw.text((padding + i * char_width, (canvas_height - 48) // 2), ch, font=standard_font, fill=(0, 0, 0))
-
         corrected_text += ch
 
-    # 피드백 구성
+    # 8. 피드백 구성
     if perfect_chars:
         feedback_list.append(f"{', '.join(repr(c) for c in perfect_chars)} 은(는) 완벽합니다.")
     if okay_chars:
@@ -147,17 +147,14 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
 
     avg_score = total_score / length if length > 0 else 0
 
-    # feedback_msg = "<br>".join(feedback_list) + "<br><br>점수 목록:<br>" + "<br>".join(score_list) if feedback_list else "대체로 잘 쓰셨습니다."
-
+    # 9. HTML 피드백 메시지 구성
     score_table_html = format_score_list_html(score_list)
-    feedback_msg = "<br>".join(feedback_list) + "<br><br><strong>점수 목록:</strong><br>" + score_table_html
+    feedback_msg = "<br>".join(feedback_list)
+    if notify_exceeded:
+        feedback_msg += "<br><br><strong>⚠️ 최대 20글자까지만 분석됩니다. 이후 글자는 제외되었습니다.</strong>"
+    feedback_msg += "<br><br><strong>점수 목록:</strong><br>" + score_table_html
 
-    # 6. 결과 이미지 base64 인코딩
-    #buf = BytesIO()
-    #corrected_image.save(buf, format="PNG")
-    #img_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-
-    # 7. AI 피드백 생성
+    # 10. AI 피드백 생성을 위한 점수 dict 구성
     score_dict = {}
     for item in score_list:
         try:
@@ -168,15 +165,14 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
         except:
             continue
 
-    # AI 피드백 생성 (OpenAI API 연동)
+    # 11. AI 피드백 생성 (LLM 연동)
     ai_feedback = generate_ai_feedback(clean_text, score_dict)
 
-    # 최종 결과 리턴
+    # 12. 최종 결과 반환
     return JSONResponse(content={
         "recognized_text": clean_text,
         "corrected_text": corrected_text,
         "score": round(avg_score, 2),
         "feedback": feedback_msg,
         "ai_feedback": ai_feedback,
-        # "corrected_image": f"data:image/png;base64,{img_base64}"
-    })  
+    })
