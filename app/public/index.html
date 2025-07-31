@@ -13,19 +13,27 @@
 </head>
 <body>
   <header class="site-header">
-        <img class="logo-image" src="/static/image/logo1.png" alt="로고">
-        <span class="logo-title">바른글씨</span>
-    </header>
+    <!-- <div class="logo">
+      <img class="logo-image" src="/static/image/logo2.png" alt="로고">
+      <span class="logo-title">바른글씨</span>
+    </div> -->
+    <h1 class="logo">
+      <img class="logo-image" src="/static/image/logo2.png" alt="로고">
+      <a href="main.html" class="logo-title">바른 글씨</a>
+    </h1>
+  </header>
+  <!-- 로딩 중 -->
+  <div class="loading hidden">
+    <div class="loading-spinner"></div>
+  </div>
   <div class="layout-bg">
     <div class="main-wrap">
-     
-      <div class="grid-2x2">
+      <div class="cards-container">
            <!-- 업로드 -->
-        <div class="card upload-card">
+        <div class="upload-card">
           <div class="card-title">손글씨 이미지 업로드</div>
           <div class="upload-desc">JPG, PNG 형식의 손글씨 이미지를 선택하거나 드래그하여 업로드하세요.</div>
           <div class="upload-box">
-            <!-- <input type="file" id="imageInput" accept="image/*" onchange="previewImage()" style="margin-bottom: 10px;" display=""> -->
             <img id="preview" class="preview-image hidden" alt="미리보기 이미지">
             <div class="upload-info">이미지를 선택하거나 여기에 드래그하세요.<br><br> JPG, JPEG, PNG 및 WEBP. 최대 20MB.</div>
             <button class="btn gray" onclick="previewImage()">파일 올리기</button>
@@ -37,134 +45,137 @@
         </div>
 
         <!-- 점수 영역 -->
-        <div class="card score-card">
+        <div class="score-card">
           <div class="card-title">손글씨 점수</div>
-          <div class="score-flex">
-            <div class="score-circle" id="score-result">-</div>
-            <div class="highlight-box2 small" id="feedback-text">
-              분석 후 결과가 여기에 표시됩니다.
+            <div class="score-flex">
+              <div class="score-circle" id="score-result">-</div>
+              <div class="highlight-box2 small" id="feedback-text">
+                분석 후 결과가 여기에 표시됩니다.
+              </div>
             </div>
-          </div>
         </div>
 
          <!-- 교정 이미지 표시 -->
-      <div class="card" style="margin-top: 30px;">
-        <div class="card-title">인식된 글자</div>
-        <p id="corrected-text" style="font-size: 24px; font-family: 'Noto Sans KR', sans-serif;">
-      </div>
-
-        
+          <div class="latter-card">
+            <div class="card-title">인식된 글자</div>
+            <p id="corrected-text" class="correct-text">
+          </div>
 
         <!-- 피드백 결과 -->
-        <div class="card feedback-card">
+        <div class="feedback-card">
           <div class="card-title">손글씨 피드백</div>
-          <ul id="error-list" class="fb-row" style="list-style: disc; padding-left: 20px;"></ul>
-        </div>
+          <ul id="error-list" class="fb-row"></ul>
         </div>
       </div>
     </div>
   </div>
 
   <!--footer 저작권-->
-      <footer class="footer-copyright">
-      © 2025 바른글씨. All rights reserved.
-      </footer>
+  <footer class="footer-copyright">
+    © 2025 바른글씨. All rights reserved.
+  </footer>
 
   <!-- 생략된 head/body 등은 기존과 동일하므로 수정된 script 부분만 아래에 집중해서 보여드릴게요 -->
-<script>
-  let selectedFile = null;
+  <script>
+    let selectedFile = null;
 
-  function previewImage() {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.onchange = e => {
-      const file = e.target.files[0];
+    function previewImage() {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        selectedFile = file;
+
+        const preview = document.getElementById("preview");
+        const reader = new FileReader();
+        reader.onload = ev => {
+          preview.src = ev.target.result;
+          preview.classList.remove("hidden");
+          document.querySelector('.upload-info').style.display = 'none'; //설명 숨기기
+          document.querySelector('.btn.gray').style.display = 'none'; //파일 올리기 숨기기
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    }
+
+    const uploadBox = document.querySelector('.upload-box');
+
+    uploadBox.addEventListener('dragover', e => {
+      e.preventDefault();
+      uploadBox.classList.add('dragover');
+    });
+
+    uploadBox.addEventListener('dragleave', e => {
+      e.preventDefault();
+      uploadBox.classList.remove('dragover');
+    });
+
+    uploadBox.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadBox.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
       if (!file) return;
       selectedFile = file;
 
-      const preview = document.getElementById("preview");
       const reader = new FileReader();
       reader.onload = ev => {
-        preview.src = ev.target.result;
-        preview.classList.remove("hidden");
+        document.getElementById("preview").src = ev.target.result;
+        document.getElementById("preview").classList.remove("hidden");
         document.querySelector('.upload-info').style.display = 'none'; //설명 숨기기
         document.querySelector('.btn.gray').style.display = 'none'; //파일 올리기 숨기기
       };
       reader.readAsDataURL(file);
-    };
-    input.click();
-  }
+    });
 
-  const uploadBox = document.querySelector('.upload-box');
-
-  uploadBox.addEventListener('dragover', e => {
-    e.preventDefault();
-    uploadBox.classList.add('dragover');
-  });
-
-  uploadBox.addEventListener('dragleave', e => {
-    e.preventDefault();
-    uploadBox.classList.remove('dragover');
-  });
-
-  uploadBox.addEventListener('drop', e => {
-    e.preventDefault();
-    uploadBox.classList.remove('dragover');
-    const file = e.dataTransfer.files[0];
-    if (!file) return;
-    selectedFile = file;
-
-    const reader = new FileReader();
-    reader.onload = ev => {
-      document.getElementById("preview").src = ev.target.result;
-      document.getElementById("preview").classList.remove("hidden");
-      document.querySelector('.upload-info').style.display = 'none'; //설명 숨기기
-      document.querySelector('.btn.gray').style.display = 'none'; //파일 올리기 숨기기
-    };
-    reader.readAsDataURL(file);
-  });
-
-  async function submitImage() {
-    if (!selectedFile) {
-      alert("이미지를 선택해주세요!");
-      return;
-    }
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-
-    try {
-      const res = await fetch(`http://${window.location.hostname}:8000/evaluate`, {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        alert("분석 실패: " + error.detail);
+    async function submitImage() {
+      if (!selectedFile) {
+        alert("이미지를 선택해주세요!");
         return;
       }
-      const result = await res.json();
+      const loadingEl = document.querySelector('.loading');
+      loadingEl.classList.remove('hidden');  // 분석 시작 전 로딩 보이기
 
-      document.getElementById("score-result").textContent = `${result.score}점`;
-      document.getElementById("feedback-text").innerHTML = result.feedback;
+      const formData = new FormData();
+      formData.append("file", selectedFile);
 
-      const errorList = document.getElementById("error-list");
-      errorList.innerHTML = "";
-      result.feedback.split(/<br>/).forEach(line => {
-        if (line.trim()) {
-          const li = document.createElement("li");
-          li.innerHTML = line.trim();
-          errorList.appendChild(li);
+      try {
+        const res = await fetch(`http://${window.location.hostname}:8000/evaluate`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) {
+          const error = await res.json();
+          alert("분석 실패: " + error.detail);
+          return;
         }
-      });
+        const result = await res.json();
 
-      document.getElementById("corrected-text").textContent = result.corrected_text;
+        document.getElementById("score-result").textContent = `${result.score}점`;
+        document.getElementById("feedback-text").innerHTML = result.feedback;
 
-    } catch (err) {
-      console.error("분석 중 오류 발생:", err);
-      alert("서버 연결 실패 또는 오류 발생");
+        const errorList = document.getElementById("error-list");
+        errorList.innerHTML = "";
+        result.feedback.split(/<br>/).forEach(line => {
+          if (line.trim()) {
+            const li = document.createElement("li");
+            li.innerHTML = line.trim();
+            errorList.appendChild(li);
+          }
+        });
+
+        document.getElementById("corrected-text").textContent = result.corrected_text;
+
+      } catch (err) {
+        console.error("분석 중 오류 발생:", err);
+        alert("서버 연결 실패 또는 오류 발생");
+      }
+      finally {
+        loadingEl.classList.add('hidden');   // 완료 후 로딩 숨기기
+      }
     }
-  }
-</script>
+  </script>
 </body>
 </html>
