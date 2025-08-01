@@ -6,7 +6,7 @@ body, html {
 
 .loading{
   display: flex;
-  flex-direction: column;
+  /* flex-direction: column; */
   align-items: center;
   justify-content: center;
   width: 100%;
@@ -37,7 +37,7 @@ body, html {
 /* 전체 배경 색상 및 최소 크기 설정 */
 .layout-bg {
   background: #efefef;
-  min-height: 100%;
+  min-height: 85.2%;
   min-width: 100%;
 }
 
@@ -85,22 +85,14 @@ body, html {
     margin-right: 10px;
 }
 
-/* 2x2 그리드 레이아웃 구성 */
-/* .grid-2x2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: repeat(2, minmax(120px, auto));
-  gap: 30px 30px;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding-top: 3%;
-} */
-
 /* 각 카드별로 클래스명 부여! */
 /* .today-sentence-card {
   /* 오늘의 문장 카드만 스타일
-  min-height: 10px;
-  padding: 18px 20px 12px 20px;
+  min-height: 200px;
+  width: 600px;
+  background-color:#fff;
+  padding: 34px 34px 28px;
+  border-radius: 20px;
 } */
 
 .upload-card {
@@ -163,7 +155,7 @@ body, html {
 }
 
 /* 오늘의 손글씨 문장 박스 및 텍스트 박스 */
-/* .today-sentence .highlight-box {
+/* .today-sentence .highlight-box1 {
   background: #dae1f8;
   color: #1c64ff;
   font-size: 20px;
@@ -182,6 +174,7 @@ body, html {
 
 /* 점수 원형 표시 */
 .score-circle {
+  flex-shrink: 0; /* 크기 줄어들거나 커지지 않도록 */
   width: 80px; height: 80px;
   background: #1c64ff;
   color: #fff;
@@ -191,7 +184,7 @@ body, html {
   align-items: center; 
   justify-content: center;
   font-family: 'Pretendard-Bold', sans-serif;
-  margin-right: 10px;
+  /* margin-right: 10px; */
 }
 
 /* 오늘의 손글씨 문장 텍스트 박스 */
@@ -205,7 +198,7 @@ body, html {
   font-family: 'Pretendard', sans-serif;
   display: flex; 
   justify-content: center; /* 가로(수평) 기준으로 가운데 정렬
-  align-items: center; /* 세로(수직) 기준으로 가운데 정렬 
+  align-items: center; /* 세로(수직) 기준으로 가운데 정렬
   text-align: center; /* 줄 바꿈된 각 줄도 가운데 정렬 
   line-height: 1.5; /* 줄 간격 1.5배 
 } */
@@ -223,10 +216,6 @@ body, html {
 
 /* 분석 결과 점수 박스 */
 .highlight-box.small { font-size: 12px; padding: 14px 16px;} 
-
-/* #feedback-text{
-  font-size: 10px;
-} */
 
 /* 업로드 설명 */
 .upload-desc {
@@ -349,6 +338,7 @@ body, html {
   .logo-title { font-size: 34px; margin-left: 20px; }
   .grid-2x2 { max-width: 98vw; }
 } */
+
 /* 반응형: 태블릿 */
 @media (max-width: 768px) {
   /* 화면 꽉 채우되 양쪽 16px 패딩 추가 */
@@ -408,15 +398,19 @@ body, html {
 
   /* 기타 요소(버튼·폰트) 조정 (기존값 유지) */
   .fb-row,
+  .highlight-box1
   .highlight-box2.small {
     padding: 7px 8px;
     font-size: 12px;
+    line-height: 1.5; /* 줄 간격 1.5배 */
+    padding-left: 25px;
   }
   .btn {
     font-size: 13px;
     padding: 8px 16px;
   }
   .score-circle {
+    flex-shrink: 0; /* 크기 줄어들거나 커지지 않도록 */
     width: 45px;
     height: 45px;
     font-size: 14px;
@@ -483,11 +477,13 @@ body, html {
 
   /* 기타 요소들 폰트/패딩 조정 (기존 그대로) */
   .fb-row,
+  .highlight-box1
   .highlight-box2.small {
     padding: 7px 8px;
     font-size: 10px;
     border-radius: 12px;
     line-height: 1.5; /* 줄 간격 1.5배 */
+    padding-left: 25px;
   }
   
   .btn {
@@ -496,9 +492,10 @@ body, html {
   }
 
   .score-circle {
+    flex-shrink: 0; /* 크기 줄어들거나 커지지 않도록 */
     width: 45px;
     height: 45px;
-    font-size: 12px;
+    font-size: 14px;
     white-space: nowrap;    /* 라인 래핑 방지 */
   }
 }

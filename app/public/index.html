@@ -6,12 +6,17 @@
   <title>바른글씨</title>
   <link rel="stylesheet" href="/static/globals.css?v=333">
   <link rel="stylesheet" href="/static/styleguide.css?v=333">
-  <link rel="stylesheet" href="/static/style.css?v=333">
+  <link rel="stylesheet" href="/static/style.css?v=334">
   <style>
     .hidden { display: none; }
   </style>
 </head>
 <body>
+  <!-- 로딩 중 -->
+  <div class="loading hidden">
+    <div class="loading-spinner"></div>
+  </div>
+  <!-- 헤더 -->
   <header class="site-header">
     <!-- <div class="logo">
       <img class="logo-image" src="/static/image/logo2.png" alt="로고">
@@ -22,10 +27,6 @@
       <a href="main.html" class="logo-title">바른 글씨</a>
     </h1>
   </header>
-  <!-- 로딩 중 -->
-  <div class="loading hidden">
-    <div class="loading-spinner"></div>
-  </div>
   <div class="layout-bg">
     <div class="main-wrap">
       <div class="cards-container">
@@ -137,6 +138,7 @@
       }
       const loadingEl = document.querySelector('.loading');
       loadingEl.classList.remove('hidden');  // 분석 시작 전 로딩 보이기
+      document.body.style.overflow = 'hidden'; // 스크롤 잠그기
 
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -174,6 +176,7 @@
       }
       finally {
         loadingEl.classList.add('hidden');   // 완료 후 로딩 숨기기
+        document.body.style.overflow = ''; // 스크롤 복원
       }
     }
   </script>
