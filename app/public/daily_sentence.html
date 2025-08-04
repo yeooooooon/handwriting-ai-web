@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>오늘의 손글씨</title>
-  <link rel="stylesheet" href="/static/globals.css">
-  <link rel="stylesheet" href="/static/style.css">
+  <title>바른 글씨 - 오늘의 손글씨</title>
+  <link rel="stylesheet" href="/static/globals.css?v=333">
+  <link rel="stylesheet" href="/static/styleguide.css?v=333">
+  <link rel="stylesheet" href="/static/style.css?v=334">
   <style>
     .hidden { display: none; }
     .error-message { color: red; margin-top: 10px; font-weight: bold; }
@@ -18,56 +19,101 @@
       border-radius: 4px;
       cursor: pointer;
     }
+    .cards-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .card,
+    .upload-card,
+    .score-card,
+    .latter-card,
+    .feedback-card,
+    .today-sentence-card {
+      box-sizing: border-box;
+    }
+    .today-sentence-card {
+      flex: 1 1 100%;
+    }
+    .upload-card,
+    .score-card,
+    .latter-card,
+    .feedback-card {
+      flex: 1 1 48%;
+    }
   </style>
 </head>
 <body>
+  <div class="loading hidden">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <header class="site-header">
+    <h1 class="logo">
+      <img class="logo-image" src="/static/image/logo2.png" alt="로고">
+      <a href="main.html" class="logo-title">바른 글씨 - 오늘의 손글씨</a>
+    </h1>
+  </header>
+
   <div class="layout-bg">
     <div class="main-wrap">
-      <div class="logo-title">
-        <img class="logo-image" src="/static/image/logo1.png" alt="logo">
-        바른글씨 - 오늘의 문장
-      </div>
+      <div class="cards-container">
 
-      <!-- 오늘의 문장 표시 -->
-      <div class="card today-sentence-card">
-        <div class="card-title">
-          오늘의 손글씨 문장
-          <button class="refresh-button" onclick="refreshSentence()">🔄 새 문장</button>
+        <!-- 오늘의 문장 표시 -->
+        <div class="card today-sentence-card">
+          <div class="card-title">
+            오늘의 손글씨 문장
+            <button class="refresh-button" onclick="refreshSentence()">🔄 새 문장</button>
+          </div>
+          <div class="highlight-box1" id="daily-sentence">불러오는 중...</div>
         </div>
-        <div class="highlight-box1" id="daily-sentence">불러오는 중...</div>
-      </div>
 
-      <!-- 업로드 카드 -->
-      <div class="card upload-card">
-        <div class="card-title">손글씨 이미지 업로드</div>
-        <div class="upload-box">
-          <img id="preview" class="preview-image hidden" alt="미리보기 이미지">
-          <div class="upload-info">이미지를 선택하거나 드래그하세요. (JPG/PNG)</div>
-          <button class="btn blue1" onclick="previewImage()">손글씨 올리기</button>
+        <!-- 업로드 카드 -->
+        <div class="upload-card card">
+          <div class="card-title">손글씨 이미지 업로드</div>
+          <div class="upload-desc">JPG, PNG 형식의 손글씨 이미지를 선택하거나 드래그하여 업로드하세요.</div>
+          <div class="upload-box">
+            <img id="preview" class="preview-image hidden" alt="미리보기 이미지">
+            <div class="upload-info">이미지를 선택하거나 여기에 드래그하세요.<br><br> JPG, JPEG, PNG 및 WEBP. 최대 20MB.</div>
+            <button class="btn gray" onclick="previewImage()">파일 올리기</button>
+          </div>
+          <div class="btns">
+            <button class="btn blue1" onclick="submitImage()">분석하기</button>
+            <button class="btn outline" onclick="location.reload()">초기화</button>
+          </div>
+          <div id="error-message" class="error-message hidden"></div>
         </div>
-        <div class="btns">
-          <button class="btn gray" onclick="submitImage()">분석하기</button>
-          <button class="btn outline" onclick="location.reload()">초기화</button>
-        </div>
-        <div id="error-message" class="error-message hidden"></div>
-      </div>
 
-      <!-- 분석 결과 -->
-      <div class="card score-card">
-        <div class="card-title">분석 결과</div>
-        <div class="score-flex">
-          <div class="score-circle" id="score-result">-</div>
-          <div class="highlight-box2" id="feedback-text">분석 결과가 여기에 표시됩니다.</div>
+        <!-- 분석 결과 -->
+        <div class="score-card card">
+          <div class="card-title">손글씨 점수</div>
+          <div class="score-flex">
+            <div class="score-circle" id="score-result">-</div>
+            <div class="highlight-box2 small" id="feedback-text">
+              분석 후 결과가 여기에 표시됩니다.
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- 교정 이미지 -->
-      <div class="card">
-        <div class="card-title">교정된 이미지</div>
-        <img id="corrected-image" class="preview-image hidden" alt="교정 이미지">
+        <!-- 교정 텍스트 -->
+        <div class="latter-card card">
+          <div class="card-title">인식된 글자</div>
+          <p id="corrected-text" class="correct-text"></p>
+        </div>
+
+        <!-- 피드백 결과 -->
+        <div class="feedback-card card">
+          <div class="card-title">손글씨 피드백</div>
+          <ul id="error-list" class="fb-row"></ul>
+        </div>
+
       </div>
     </div>
   </div>
+
+  <footer class="footer-copyright">
+    © 2025 바른글씨. All rights reserved.
+  </footer>
 
   <script>
     let selectedFile = null;
@@ -77,7 +123,7 @@
       const res = await fetch(`http://${window.location.hostname}:8000/daily_sentence`);
       const data = await res.json();
       if (force && data.sentence === todaySentence) {
-        return loadDailySentence(true); // 중복 방지
+        return loadDailySentence(true);
       }
       todaySentence = data.sentence;
       document.getElementById("daily-sentence").textContent = todaySentence;
@@ -98,10 +144,13 @@
         if (!file) return;
         selectedFile = file;
 
+        const preview = document.getElementById("preview");
         const reader = new FileReader();
         reader.onload = ev => {
-          document.getElementById("preview").src = ev.target.result;
-          document.getElementById("preview").classList.remove("hidden");
+          preview.src = ev.target.result;
+          preview.classList.remove("hidden");
+          document.querySelector('.upload-info').style.display = 'none';
+          document.querySelector('.btn.gray').style.display = 'none';
         };
         reader.readAsDataURL(file);
       };
@@ -109,49 +158,62 @@
     }
 
     async function submitImage() {
-        const errorMsg = document.getElementById("error-message");
-        errorMsg.classList.add("hidden");
+      const errorMsg = document.getElementById("error-message");
+      errorMsg.classList.add("hidden");
 
-        if (!selectedFile) {
-            alert("이미지를 선택해주세요!");
-            return;
+      if (!selectedFile) {
+        alert("이미지를 선택해주세요!");
+        return;
+      }
+
+      const loadingEl = document.querySelector('.loading');
+      loadingEl.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("target", todaySentence);
+
+      try {
+        const res = await fetch(`http://${window.location.hostname}:8000/evaluate`, {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await res.json();
+
+        const cleanText = result.recognized_text?.trim().replace(/\s/g, "");
+        const targetClean = todaySentence.trim().replace(/\s/g, "");
+
+        if (cleanText !== targetClean) {
+          errorMsg.textContent = "문장이 일치하지 않습니다. 다시 작성해주세요.";
+          errorMsg.classList.remove("hidden");
+          return;
         }
 
-        const formData = new FormData();
-        formData.append("file", selectedFile);
-        formData.append("target", todaySentence);
+        document.getElementById("score-result").textContent = `${result.score}점`;
+        document.getElementById("feedback-text").innerHTML = result.feedback;
 
-        try {
-            const res = await fetch(`http://${window.location.hostname}:8000/evaluate`, {
-            method: "POST",
-            body: formData,
-            });
+        const errorList = document.getElementById("error-list");
+        errorList.innerHTML = "";
+        result.feedback.split(/<br>/).forEach(line => {
+          if (line.trim()) {
+            const li = document.createElement("li");
+            li.innerHTML = line.trim();
+            errorList.appendChild(li);
+          }
+        });
 
-            const result = await res.json();
+        document.getElementById("corrected-text").textContent = result.corrected_text;
 
-            // 공백 제거 후 문장 비교
-            const cleanText = result.recognized_text?.trim().replace(/\s/g, "");
-            const targetClean = todaySentence.trim().replace(/\s/g, "");
-
-            if (cleanText !== targetClean) {
-            errorMsg.textContent = "문장이 일치하지 않습니다. 다시 작성해주세요.";
-            errorMsg.classList.remove("hidden");
-            return;
-            }
-
-            // 정상 결과 처리
-            document.getElementById("score-result").textContent = `${result.score}점`;
-            document.getElementById("feedback-text").innerHTML = result.feedback;
-            const img = document.getElementById("corrected-image");
-            img.src = result.corrected_image;
-            img.classList.remove("hidden");
-
-        } catch (err) {
-            console.error("분석 오류:", err);
-            alert("서버 오류 또는 연결 실패");
-        }
+      } catch (err) {
+        console.error("분석 오류:", err);
+        alert("서버 오류 또는 연결 실패");
+      } finally {
+        loadingEl.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
     }
-
   </script>
 </body>
 </html>
