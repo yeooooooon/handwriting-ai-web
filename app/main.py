@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 from fastapi.responses import JSONResponse
+from app.daily_challenge_api import router as challenge_router
 import random
 import os
 
@@ -14,6 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent  # main.py가 있는 폴더.
 
 app = FastAPI()
 app.include_router(handwriting_router)
+app.include_router(challenge_router)
 # app.include_router(evaluate_router)
 
 sentences = [

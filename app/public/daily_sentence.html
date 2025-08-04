@@ -10,6 +10,7 @@
   <style>
     .hidden { display: none; }
     .error-message { color: red; margin-top: 10px; font-weight: bold; }
+    .success-message { color: green; margin-top: 10px; font-weight: bold; }
     .refresh-button {
       margin-left: 10px;
       font-size: 14px;
@@ -29,10 +30,12 @@
     .score-card,
     .latter-card,
     .feedback-card,
-    .today-sentence-card {
+    .today-sentence-card,
+    .timer-card {
       box-sizing: border-box;
     }
-    .today-sentence-card {
+    .today-sentence-card,
+    .timer-card {
       flex: 1 1 100%;
     }
     .upload-card,
@@ -68,6 +71,12 @@
           <div class="highlight-box1" id="daily-sentence">불러오는 중...</div>
         </div>
 
+        <!-- 제한 시간 -->
+        <div class="card timer-card">
+          <div class="card-title">제한 시간</div>
+          <div class="highlight-box2" id="timer-display">60초 남음</div>
+        </div>
+
         <!-- 업로드 카드 -->
         <div class="upload-card card">
           <div class="card-title">손글씨 이미지 업로드</div>
@@ -82,6 +91,7 @@
             <button class="btn outline" onclick="location.reload()">초기화</button>
           </div>
           <div id="error-message" class="error-message hidden"></div>
+          <div id="success-message" class="success-message hidden"></div>
         </div>
 
         <!-- 분석 결과 -->
@@ -89,9 +99,7 @@
           <div class="card-title">손글씨 점수</div>
           <div class="score-flex">
             <div class="score-circle" id="score-result">-</div>
-            <div class="highlight-box2 small" id="feedback-text">
-              분석 후 결과가 여기에 표시됩니다.
-            </div>
+            <div class="highlight-box2 small" id="feedback-text">분석 후 결과가 여기에 표시됩니다.</div>
           </div>
         </div>
 
@@ -118,6 +126,10 @@
   <script>
     let selectedFile = null;
     let todaySentence = "";
+    let countdown = 60;
+    let timerInterval = null;
+    let timerExpired = false;
+    let submitted = false;
 
     async function loadDailySentence(force = false) {
       const res = await fetch(`http://${window.location.hostname}:8000/daily_sentence`);
@@ -133,7 +145,24 @@
       loadDailySentence(true);
     }
 
-    window.onload = () => loadDailySentence();
+    function startTimer() {
+      clearInterval(timerInterval);
+      countdown = 60;
+      timerExpired = false;
+      document.getElementById("timer-display").textContent = `${countdown}초 남음`;
+
+      timerInterval = setInterval(() => {
+        countdown--;
+        document.getElementById("timer-display").textContent = `${countdown}초 남음`;
+
+        if (countdown <= 0) {
+          clearInterval(timerInterval);
+          timerExpired = true;
+          document.getElementById("timer-display").textContent = "시간 초과!";
+          alert("60초 내에 제출하지 않아 챌린지가 종료되었습니다.");
+        }
+      }, 1000);
+    }
 
     function previewImage() {
       const input = document.createElement("input");
@@ -159,7 +188,14 @@
 
     async function submitImage() {
       const errorMsg = document.getElementById("error-message");
+      const successMsg = document.getElementById("success-message");
       errorMsg.classList.add("hidden");
+      successMsg.classList.add("hidden");
+
+      if (timerExpired) {
+        alert("제한 시간이 초과되었습니다. 다시 시도해주세요.");
+        return;
+      }
 
       if (!selectedFile) {
         alert("이미지를 선택해주세요!");
@@ -191,6 +227,7 @@
           return;
         }
 
+        clearInterval(timerInterval); // ⬅️ 타이머 정지 추가
         document.getElementById("score-result").textContent = `${result.score}점`;
         document.getElementById("feedback-text").innerHTML = result.feedback;
 
@@ -204,7 +241,21 @@
           }
         });
 
-        document.getElementById("corrected-text").textContent = result.corrected_text;
+        const correctedText = document.getElementById("corrected-text");
+        correctedText.innerHTML = "";
+        if (result.char_scores) {
+          for (const [char, score] of Object.entries(result.char_scores)) {
+            const span = document.createElement("span");
+            span.style.marginRight = "10px";
+            span.textContent = `${char}(${score}점)`;
+            correctedText.appendChild(span);
+          }
+        } else {
+          correctedText.textContent = result.corrected_text;
+        }
+
+        successMsg.textContent = "✅ 제한 시간 내에 성공적으로 제출했습니다!";
+        successMsg.classList.remove("hidden");
 
       } catch (err) {
         console.error("분석 오류:", err);
@@ -213,6 +264,11 @@
         loadingEl.classList.add('hidden');
         document.body.style.overflow = '';
       }
+    }
+
+    window.onload = () => {
+      loadDailySentence();
+      startTimer(); // 페이지 진입 시 타이머 시작
     }
   </script>
 </body>
