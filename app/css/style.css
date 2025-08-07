@@ -2,6 +2,7 @@
 body, html {
   margin: 0; padding: 0; width: 100vw; height: 100vh;
   font-family: 'Pretendard', 'sans-serif';
+  background: #efefef;
 }
 
 .loading{
@@ -36,7 +37,7 @@ body, html {
 
 /* 전체 배경 색상 및 최소 크기 설정 */
 .layout-bg {
-  background: #efefef;
+  /* background: #efefef; */
   min-height: 85.2%;
   min-width: 100%;
 }
@@ -46,6 +47,13 @@ body, html {
   max-width: 1440px;
   margin: 0 auto;
   padding: 50px 0 50px 0;
+}
+
+.cards-container1 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin-bottom: 20px;
 }
 
 .cards-container {
@@ -86,14 +94,44 @@ body, html {
 }
 
 /* 각 카드별로 클래스명 부여! */
-/* .today-sentence-card {
-  /* 오늘의 문장 카드만 스타일
-  min-height: 200px;
-  width: 600px;
-  background-color:#fff;
-  padding: 34px 34px 28px;
+.today-sentence-card {
+  /* 오늘의 문장 카드만 스타일 */
+  /* min-height: 50px; */
+  width: 84.8%;
+  /* background-color:#fff; */
+  /* padding: 34px 34px 28px; */
   border-radius: 20px;
-} */
+  /* justify-content: center; */
+  margin-left: 110px;
+}
+
+.error-message { 
+  color: red; margin-top: 10px; font-weight: bold; 
+}
+
+.success-message { 
+  color: green; margin-top: 10px; font-weight: bold; 
+}
+
+.refresh-button {
+  margin-left: 10px;
+  font-size: 14px;
+  padding: 4px 8px;
+  background-color: #eee;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.timer-card {
+  box-sizing: border-box;
+  width: 84.8%;
+  /* background-color:#fff; */
+  /* padding: 34px 34px 28px; */
+  border-radius: 20px;
+  justify-content: center;
+  margin-left: 110px;
+}
 
 .upload-card {
   min-height: 400px;
@@ -133,6 +171,8 @@ body, html {
   padding: 34px 34px 28px;
   border-radius: 20px;
 }
+
+
 
 /* 카드 공통 스타일 */
 /* .card {

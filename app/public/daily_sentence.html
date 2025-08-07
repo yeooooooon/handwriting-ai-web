@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/static/style.css?v=334">
   <style>
     .hidden { display: none; }
-    .error-message { color: red; margin-top: 10px; font-weight: bold; }
+    /* .error-message { color: red; margin-top: 10px; font-weight: bold; }
     .success-message { color: green; margin-top: 10px; font-weight: bold; }
     .refresh-button {
       margin-left: 10px;
@@ -43,14 +43,16 @@
     .latter-card,
     .feedback-card {
       flex: 1 1 48%;
-    }
+    } */
   </style>
 </head>
 <body>
+  <!-- 로딩 중 -->
   <div class="loading hidden">
     <div class="loading-spinner"></div>
   </div>
 
+<!-- 헤더 -->
   <header class="site-header">
     <h1 class="logo">
       <img class="logo-image" src="/static/image/logo2.png" alt="로고">
@@ -60,8 +62,9 @@
 
   <div class="layout-bg">
     <div class="main-wrap">
-      <div class="cards-container">
 
+      <!-- 오늘의 문장, 제한 시간 카드 묶음 -->
+      <div class="cards-container1">
         <!-- 오늘의 문장 표시 -->
         <div class="card today-sentence-card">
           <div class="card-title">
@@ -76,7 +79,10 @@
           <div class="card-title">제한 시간</div>
           <div class="highlight-box2" id="timer-display">60초 남음</div>
         </div>
+      </div>
 
+      <!-- 업로드 카드, 점수 카드, 교정 텍스트 카드, 피드백 결과 카드 묶음 -->
+      <div class="cards-container">
         <!-- 업로드 카드 -->
         <div class="upload-card card">
           <div class="card-title">손글씨 이미지 업로드</div>
@@ -185,6 +191,35 @@
       };
       input.click();
     }
+    // 이미지 드래그 업로드
+    const uploadBox = document.querySelector('.upload-box');
+
+    uploadBox.addEventListener('dragover', e => {
+      e.preventDefault();
+      uploadBox.classList.add('dragover');
+    });
+
+    uploadBox.addEventListener('dragleave', e => {
+      e.preventDefault();
+      uploadBox.classList.remove('dragover');
+    });
+
+    uploadBox.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadBox.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      selectedFile = file;
+
+      const reader = new FileReader();
+      reader.onload = ev => {
+        document.getElementById("preview").src = ev.target.result;
+        document.getElementById("preview").classList.remove("hidden");
+        document.querySelector('.upload-info').style.display = 'none'; //설명 숨기기
+        document.querySelector('.btn.gray').style.display = 'none'; //파일 올리기 숨기기
+      };
+      reader.readAsDataURL(file);
+    });
 
     async function submitImage() {
       const errorMsg = document.getElementById("error-message");
