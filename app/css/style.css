@@ -103,6 +103,7 @@ body, html {
   border-radius: 20px;
   /* justify-content: center; */
   margin-left: 110px;
+  margin-bottom: -5px;
 }
 
 .error-message { 
@@ -192,6 +193,11 @@ body, html {
   font-family: 'Pretendard-Bold', sans-serif;
   font-size: 22px;
   margin-bottom: 6px;
+}
+.card-title2 {
+  font-family: 'Pretendard-Bold', sans-serif;
+  font-size: 22px;
+  margin-bottom: 20px;
 }
 
 /* 오늘의 손글씨 문장 박스 및 텍스트 박스 */
@@ -379,6 +385,76 @@ body, html {
   .grid-2x2 { max-width: 98vw; }
 } */
 
+/* 공통: 위/아래 카드 컨테이너를 같은 폭/가터로 */
+.cards-container1,
+.cards-container {
+  max-width: 1268px;      
+  margin: 0 auto 24px;    /* 가운데 정렬 + 아래 간격 */
+  padding: 0 24px;        /* 좌우 가터(아래랑 동일하게) */
+  box-sizing: border-box;
+}
+
+/* 위쪽(오늘의 문장 + 제한시간) 좌우 배치 */
+.cards-container1 {
+  display: grid;
+  grid-template-columns: 1fr 1fr; 
+  gap: 24px;
+}
+
+/* 위쪽 카드의 폭/마진 리셋(다른 .card 규칙이 있으면 이걸로 이김) */
+.cards-container1 > .card {
+  width: 100% !important;
+  margin: 0 !important;
+  justify-self: stretch;
+}
+
+/* (옵션) 위쪽 카드 외형 통일 */
+.cards-container1 > .card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+}
+
+/* 카드 외형(아래 카드와 통일) */
+.cards-container1 .today-sentence-card,
+.cards-container1 .timer-card{
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.06);
+}
+
+/* 내부 바 여백 */
+#daily-sentence,
+#timer-display{ margin-top: 12px; }
+
+/* 모바일/태블릿에서는 세로로 쌓기 */
+@media (max-width: 1024px){
+  .cards-container1{ grid-template-columns: 1fr; }
+}
+
+/* 헤더 영역 여백 늘리기 */
+.site-header {
+  padding: 20px 150px;      /* 위아래 20px, 좌우 24px */
+  box-sizing: border-box;
+}
+
+/* 로고 텍스트/이미지 높이 여유 주기 */
+.site-header .logo {
+  align-items: center;
+  display: flex;
+  gap: 12px;               /* 로고와 텍스트 사이 간격 */
+}
+
+/* 작은 화면일 때 여백 줄이기 */
+@media (max-width: 768px) {
+  .site-header {
+    padding: 12px 16px;
+  }
+}
+
+
 /* 반응형: 태블릿 */
 @media (max-width: 768px) {
   /* 화면 꽉 채우되 양쪽 16px 패딩 추가 */
@@ -390,19 +466,17 @@ body, html {
   }
 
   .site-header {
-    display: flex;
-    align-items: center;
-    padding: 0 20px; /* 좌우 여백 */
-    height: 64px;
-    background-color: #fff;
-    box-sizing: border-box;
+  padding: 20px 150px;      /* 위아래 20px, 좌우 24px */
+  box-sizing: border-box;
   }
 
-  .logo {
-    display: flex;
+  /* 로고 텍스트/이미지 높이 여유 주기 */
+  .site-header .logo {
     align-items: center;
+    display: flex;
+    gap: 12px;               /* 로고와 텍스트 사이 간격 */
   }
-  
+    
   /* 로고 타이틀 스타일 */
   .logo-title {
     font-size: 28px;
