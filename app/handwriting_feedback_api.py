@@ -22,7 +22,7 @@ if not os.path.exists(font_path):
 
 standard_font = ImageFont.truetype(font_path, size=48)
 resize_shape = (128, 128)
-MAX_CHAR_LIMIT = 20  # 최대 글자 수 제한
+MAX_CHAR_LIMIT = 40  # 최대 글자 수 제한
 
 # 점수 테이블을 HTML로 포맷
 def format_score_list_html(score_list):
