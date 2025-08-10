@@ -448,16 +448,13 @@ body, html {
 }
 
 /* 작은 화면일 때 여백 줄이기 */
+/* 작은 화면 공통 */
 @media (max-width: 768px) {
   .site-header {
+    /* 둘 중 하나로 통일 */
     padding: 12px 16px;
+    box-sizing: border-box;
   }
-}
-
-
-/* 반응형: 태블릿 */
-@media (max-width: 768px) {
-  /* 화면 꽉 채우되 양쪽 16px 패딩 추가 */
   .main-wrap {
     width: 100%;
     padding: 1px 16px;
@@ -465,71 +462,26 @@ body, html {
     margin: 0 auto;
   }
 
-  .site-header {
-  padding: 20px 150px;      /* 위아래 20px, 좌우 24px */
-  box-sizing: border-box;
+  .site-header .logo { display:flex; align-items:center; gap:12px; }
+
+  .logo-title { font-size:28px; font-family: 'Paperlogy-7Bold','Pretendard',sans-serif; font-weight:bold; color:#1c64ff; margin:0; }
+  .logo-image { width:28px; height:28px; margin-right:10px; }
+
+  .cards-container { display:grid; grid-template-columns:1fr; gap:28px; margin:20px 0; }
+  .cards-container1 { display:grid; grid-template-columns:1fr; gap:28px; margin:20px 0; }
+
+  .upload-card, .score-card, .latter-card, .feedback-card {
+    width:100%; margin:0 auto;
   }
 
-  /* 로고 텍스트/이미지 높이 여유 주기 */
-  .site-header .logo {
-    align-items: center;
-    display: flex;
-    gap: 12px;               /* 로고와 텍스트 사이 간격 */
-  }
-    
-  /* 로고 타이틀 스타일 */
-  .logo-title {
-    font-size: 28px;
-    font-family: 'Paperlogy-7Bold', 'Pretendard', sans-serif;
-    font-weight: bold;
-    color: #1c64ff;
-    margin: 0;
-  }
-  
-  /* 로고 이미지 */
-  .logo-image {
-    width: 28px;
-    height: 28px;
-    margin-right: 10px;
+  .fb-row, .highlight-box1 .highlight-box2.small {
+    padding:7px 8px; font-size:12px; line-height:1.5; padding-left:25px;
   }
 
-  /* 카드 컨테이너: 1열 그리드, 수직 간격만 gap으로 처리 */
-  .cards-container {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 28px;    /* 카드 사이 세로 간격 */
-    margin: 20px 0; /* 위아래 여백 */
-  }
-
-  /* 각 카드: 부모 패딩 덕에 좌우 여백 확보, 너비 100% */
-  .upload-card,
-  .score-card,
-  .latter-card,
-  .feedback-card {
-    width: 100%;
-    margin: 0 auto; /* 컨테이너 안에서 가운데 정렬 */
-  }
-
-  /* 기타 요소(버튼·폰트) 조정 (기존값 유지) */
-  .fb-row,
-  .highlight-box1
-  .highlight-box2.small {
-    padding: 7px 8px;
-    font-size: 12px;
-    line-height: 1.5; /* 줄 간격 1.5배 */
-    padding-left: 25px;
-  }
-  .btn {
-    font-size: 13px;
-    padding: 8px 16px;
-  }
-  .score-circle {
-    flex-shrink: 0; /* 크기 줄어들거나 커지지 않도록 */
-    width: 45px;
-    height: 45px;
-    font-size: 14px;
-  }
+  .btn { font-size:13px; padding:8px 16px; }
+  .score-circle { width:45px; height:45px; font-size:14px; flex-shrink:0; }
 }
+
 
 /* 반응형 : 모바일 */
 @media (max-width: 425px) {

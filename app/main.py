@@ -32,10 +32,11 @@ app.mount(
     name="static"
 )
 
-# index.html 서빙
+
+# main.html 서빙
 @app.get("/", response_class=FileResponse)
 def serve_index():
-    return BASE_DIR / "public" / "index.html"
+    return BASE_DIR / "public" / "main.html"
 
 # test.html 서빙
 @app.get("/test", response_class=FileResponse)
@@ -46,6 +47,11 @@ def serve_test():
 @app.get("/daily", response_class=FileResponse)
 def serve_daily():
     return BASE_DIR / "public" / "daily_sentence.html"
+
+# index.html 서빙
+@app.get("/index", response_class=FileResponse)
+def serve_main():
+    return BASE_DIR / "public" / "index.html"
 
 @app.get("/daily_sentence")
 def get_daily_sentence():
