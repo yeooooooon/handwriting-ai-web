@@ -6,7 +6,7 @@
   <title>바른 글씨 - 손글씨 업로드</title>
   <link rel="stylesheet" href="/static/globals.css?v=333">
   <link rel="stylesheet" href="/static/styleguide.css?v=333">
-  <link rel="stylesheet" href="/static/style.css?v=333">
+  <link rel="stylesheet" href="/static/style.css?v=334">
   <style>
     .hidden { display: none; }
   </style>
@@ -26,6 +26,7 @@
       <a href="/" class="logo-title">
         <img class="logo-image" src="/static/image/logo2.png" alt="로고">바른 글씨</a>
     </h1>
+    <a href="/"><img class="home-image" src="/static/image/home.png" alt="홈"></a>
   </header>
   <div class="layout-bg">
     <div class="main-wrap">
@@ -65,7 +66,8 @@
         <!-- 피드백 결과 -->
         <div class="feedback-card">
           <div class="card-title">손글씨 피드백</div>
-          <ul id="error-list" class="fb-row"></ul>
+          <!-- <ul id="error-list" class="fb-row"></ul> -->
+          <div id="error-list" class="fb-row"></div>
         </div>
       </div>
     </div>
@@ -160,13 +162,15 @@
 
         const errorList = document.getElementById("error-list");
         errorList.innerHTML = "";
-        result.feedback.split(/<br>/).forEach(line => {
-          if (line.trim()) {
-            const li = document.createElement("li");
-            li.innerHTML = line.trim();
-            errorList.appendChild(li);
-          }
-        });
+        // result.feedback.split(/<br>/).forEach(line => {
+        //   if (line.trim()) {
+        //     const li = document.createElement("li");
+        //     li.innerHTML = line.trim();
+        //     errorList.appendChild(li);
+        //   }
+        // });
+        errorList.innerHTML = result.feedback.replace(/<br>/g, '\n');
+        errorList.style.whiteSpace = 'pre-line'; // 줄바꿈 표시
 
         document.getElementById("corrected-text").textContent = result.corrected_text;
 

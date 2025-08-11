@@ -6,44 +6,9 @@
   <title>바른 글씨 - 오늘의 손글씨</title>
   <link rel="stylesheet" href="/static/globals.css?v=333">
   <link rel="stylesheet" href="/static/styleguide.css?v=333">
-  <link rel="stylesheet" href="/static/style.css?v=333">
+  <link rel="stylesheet" href="/static/style.css?v=334">
   <style>
     .hidden { display: none; }
-    /* .error-message { color: red; margin-top: 10px; font-weight: bold; }
-    .success-message { color: green; margin-top: 10px; font-weight: bold; }
-    .refresh-button {
-      margin-left: 10px;
-      font-size: 14px;
-      padding: 4px 8px;
-      background-color: #eee;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .cards-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-    .card,
-    .upload-card,
-    .score-card,
-    .latter-card,
-    .feedback-card,
-    .today-sentence-card,
-    .timer-card {
-      box-sizing: border-box;
-    }
-    .today-sentence-card,
-    .timer-card {
-      flex: 1 1 100%;
-    }
-    .upload-card,
-    .score-card,
-    .latter-card,
-    .feedback-card {
-      flex: 1 1 48%;
-    } */
   </style>
 </head>
 <body>
@@ -63,23 +28,22 @@
 
   <div class="layout-bg">
     <div class="main-wrap">
-
       <!-- 오늘의 문장, 제한 시간 카드 묶음 -->
       <div class="cards-container1">
         <!-- 오늘의 문장 표시 -->
-        <div class="card today-sentence-card">
-          <div class="card-title2">
+        <div class="today-sentence-card">
+          <div class="card-title">
             오늘의 손글씨 문장
-            <button class="refresh-button" onclick="refreshSentence()">🔄 새 문장</button>
+            <!-- <button class="refresh-button" onclick="refreshSentence()">🔄 새 문장</button> -->
           </div>
           <div class="highlight-box1" id="daily-sentence">불러오는 중...</div>
         </div>
 
         <!-- 제한 시간 -->
-        <div class="card timer-card">
+        <!-- <div class="card timer-card">
           <div class="card-title">제한 시간</div>
           <div class="highlight-box2" id="timer-display">60초 남음</div>
-        </div>
+        </div> -->
       </div>
 
       <!-- 업로드 카드, 점수 카드, 교정 텍스트 카드, 피드백 결과 카드 묶음 -->
