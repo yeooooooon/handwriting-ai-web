@@ -9,6 +9,21 @@
   <link rel="stylesheet" href="/static/style.css?v=334">
   <style>
     .hidden { display: none; }
+    /* 탭 & 캔버스 UI 추가 */
+    .tabbar { display:flex; gap:8px; margin-bottom:12px; }
+    .tab-btn { padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; cursor:pointer; font-size:14px; }
+    .tab-btn.active { background:#2563eb; color:#fff; border-color:#2563eb; }
+    .canvas-wrap { border:1px dashed #94a3b8; background:#fff; border-radius:12px; padding:12px; }
+    .pad-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:10px; }
+    .pad-toolbar .row { display:flex; align-items:center; gap:8px; }
+    .pad-toolbar label { font-size:13px; color:#475569; }
+    .pad-canvas-box { position:relative; }
+    .pad-canvas { width:100%; height:320px; display:block; background:#ffffff; border-radius:10px; touch-action:none; }
+    .btn.slate { background:#64748b; color:#fff; }
+    .btn.red   { background:#ef4444; color:#fff; }
+    .btn.gray2 { background:#0f172a; color:#fff; }
+    .note { font-size:12px; color:#64748b; margin-top:6px; }
+    .upload-box.dragover { outline:2px dashed #2563eb; }
   </style>
 </head>
 <body>
@@ -18,29 +33,66 @@
   </div>
   <!-- 헤더 -->
   <header class="site-header">
-    <!-- <div class="logo">
-      <img class="logo-image" src="/static/image/logo2.png" alt="로고">
-      <span class="logo-title">바른글씨</span>
-    </div> -->
     <h1 class="logo">
       <a href="/" class="logo-title">
         <img class="logo-image" src="/static/image/logo2.png" alt="로고">바른 글씨</a>
     </h1>
     <a href="/"><img class="home-image" src="/static/image/home.png" alt="홈"></a>
   </header>
+
   <div class="layout-bg">
     <div class="main-wrap">
       <div class="cards-container">
-           <!-- 업로드 -->
+        <!-- 입력 카드 -->
         <div class="upload-card">
-          <div class="card-title">손글씨 이미지 업로드</div>
-          <div class="upload-desc">JPG, PNG 형식의 손글씨 이미지를 선택하거나 드래그하여 업로드하세요.</div>
-          <div class="upload-box">
-            <img id="preview" class="preview-image hidden" alt="미리보기 이미지">
-            <div class="upload-info">이미지를 선택하거나 여기에 드래그하세요.<br><br> JPG, JPEG, PNG 및 WEBP. 최대 20MB.</div>
-            <button class="btn gray" onclick="previewImage()">파일 올리기</button>
+          <div class="card-title">입력 방식 선택</div>
+          <div class="upload-desc">이미지를 업로드하거나, 실시간 쓰기 패드에서 직접 적어 제출할 수 있습니다.</div>
+
+          <!-- 탭 -->
+          <div class="tabbar">
+            <button class="tab-btn active" id="tab-upload">이미지 업로드</button>
+            <button class="tab-btn" id="tab-draw">실시간 쓰기 (베타)</button>
           </div>
-          <div class="btns">
+
+          <!-- 업로드 패널 -->
+          <div id="panel-upload">
+            <div class="upload-box">
+              <img id="preview" class="preview-image hidden" alt="미리보기 이미지">
+              <div class="upload-info">이미지를 선택하거나 여기에 드래그하세요.<br><br> JPG, JPEG, PNG 및 WEBP. 최대 20MB.</div>
+              <button class="btn gray" onclick="previewImage()">파일 올리기</button>
+            </div>
+          </div>
+
+          <!-- 캔버스 패널 -->
+          <div id="panel-draw" class="hidden">
+            <div class="canvas-wrap">
+              <div class="pad-toolbar">
+                <div class="row">
+                  <label>펜 두께</label>
+                  <input id="penSize" type="range" min="1" max="20" value="4">
+                  <span id="penSizeVal">4px</span>
+                </div>
+                <div class="row">
+                  <label>펜 색상</label>
+                  <input id="penColor" type="color" value="#111111">
+                </div>
+                <div class="row">
+                  <label><input id="pressureToggle" type="checkbox" checked> 압력 반영</label>
+                </div>
+                <div class="row">
+                  <button class="btn slate" id="undoBtn" type="button">되돌리기</button>
+                  <button class="btn gray2" id="eraseToggle" type="button">지우개 OFF</button>
+                  <button class="btn red" id="clearBtn" type="button">전체 지우기</button>
+                </div>
+              </div>
+              <div class="pad-canvas-box">
+                <canvas id="pad" class="pad-canvas"></canvas>
+              </div>
+              <div class="note">팁: 펜/터치 지원 기기는 필압(e.pressure)에 따라 선 굵기가 변합니다. (브라우저/기기 지원 시)</div>
+            </div>
+          </div>
+
+          <div class="btns" style="margin-top:12px;">
             <button class="btn blue1" onclick="submitImage()">분석하기</button>
             <button class="btn outline" onclick="location.reload()">초기화</button>
           </div>
@@ -49,24 +101,23 @@
         <!-- 점수 영역 -->
         <div class="score-card">
           <div class="card-title">손글씨 점수</div>
-            <div class="score-flex">
-              <div class="score-circle" id="score-result">-</div>
-              <div class="highlight-box2 small" id="feedback-text">
-                분석 후 결과가 여기에 표시됩니다.
-              </div>
+          <div class="score-flex">
+            <div class="score-circle" id="score-result">-</div>
+            <div class="highlight-box2 small" id="feedback-text">
+              분석 후 결과가 여기에 표시됩니다.
             </div>
+          </div>
         </div>
 
-         <!-- 교정 이미지 표시 -->
-          <div class="latter-card">
-            <div class="card-title">인식된 글자</div>
-            <p id="corrected-text" class="correct-text">
-          </div>
+        <!-- 인식된 글자 -->
+        <div class="latter-card">
+          <div class="card-title">인식된 글자</div>
+          <p id="corrected-text" class="correct-text"></p>
+        </div>
 
         <!-- 피드백 결과 -->
         <div class="feedback-card">
           <div class="card-title">손글씨 피드백</div>
-          <!-- <ul id="error-list" class="fb-row"></ul> -->
           <div id="error-list" class="fb-row"></div>
         </div>
       </div>
@@ -78,10 +129,13 @@
     © 2025 바른글씨. All rights reserved.
   </footer>
 
-  <!-- 생략된 head/body 등은 기존과 동일하므로 수정된 script 부분만 아래에 집중해서 보여드릴게요 -->
   <script>
+    // ------------ 상태 ------------
     let selectedFile = null;
+    let mode = 'upload'; // 'upload' | 'draw'
+    let pad = null;
 
+    // ------------ 업로드 ------------
     function previewImage() {
       const input = document.createElement("input");
       input.type = "file";
@@ -96,92 +150,330 @@
         reader.onload = ev => {
           preview.src = ev.target.result;
           preview.classList.remove("hidden");
-          document.querySelector('.upload-info').style.display = 'none'; //설명 숨기기
-          document.querySelector('.btn.gray').style.display = 'none'; //파일 올리기 숨기기
+          document.querySelector('.upload-info').style.display = 'none';
+          document.querySelector('.btn.gray').style.display = 'none';
         };
         reader.readAsDataURL(file);
       };
       input.click();
     }
 
-    const uploadBox = document.querySelector('.upload-box');
+    // DnD
+    (function initDnd(){
+      const uploadBox = document.querySelector('.upload-box');
+      if (!uploadBox) return;
+      uploadBox.addEventListener('dragover', e => { e.preventDefault(); uploadBox.classList.add('dragover'); });
+      uploadBox.addEventListener('dragleave', e => { e.preventDefault(); uploadBox.classList.remove('dragover'); });
+      uploadBox.addEventListener('drop', e => {
+        e.preventDefault(); uploadBox.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        selectedFile = file;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          document.getElementById("preview").src = ev.target.result;
+          document.getElementById("preview").classList.remove("hidden");
+          document.querySelector('.upload-info').style.display = 'none';
+          document.querySelector('.btn.gray').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      });
+    })();
 
-    uploadBox.addEventListener('dragover', e => {
-      e.preventDefault();
-      uploadBox.classList.add('dragover');
-    });
+    // ------------ 캔버스 ------------
+    class HandwritingPad {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d', { willReadFrequently:true });
+        this.strokeStyle = '#111111';
+        this.baseSize = 4;
+        this.usePressure = true;
+        this.isErasing = false;
 
-    uploadBox.addEventListener('dragleave', e => {
-      e.preventDefault();
-      uploadBox.classList.remove('dragover');
-    });
+        this.paths = [];
+        this.currentPath = null;
 
-    uploadBox.addEventListener('drop', e => {
-      e.preventDefault();
-      uploadBox.classList.remove('dragover');
-      const file = e.dataTransfer.files[0];
-      if (!file) return;
-      selectedFile = file;
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
 
-      const reader = new FileReader();
-      reader.onload = ev => {
-        document.getElementById("preview").src = ev.target.result;
-        document.getElementById("preview").classList.remove("hidden");
-        document.querySelector('.upload-info').style.display = 'none'; //설명 숨기기
-        document.querySelector('.btn.gray').style.display = 'none'; //파일 올리기 숨기기
-      };
-      reader.readAsDataURL(file);
-    });
-
-    async function submitImage() {
-      if (!selectedFile) {
-        alert("이미지를 선택해주세요!");
-        return;
+        this._bindPointerEvents();
+        this._drawGrid();
       }
-      const loadingEl = document.querySelector('.loading');
-      loadingEl.classList.remove('hidden');  // 분석 시작 전 로딩 보이기
-      document.body.style.overflow = 'hidden'; // 스크롤 잠그기
 
-      const formData = new FormData();
-      formData.append("file", selectedFile);
+      setStrokeStyle(color) { this.strokeStyle = color; }
+      setBaseSize(px) { this.baseSize = px; }
+      setUsePressure(on){ this.usePressure = on; }
+      toggleEraser(){ this.isErasing = !this.isErasing; return this.isErasing; }
+
+      clear() {
+        const rect = this.canvas.getBoundingClientRect();
+        this.ctx.save();
+        this.ctx.globalCompositeOperation = 'source-over';
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(0,0,rect.width,rect.height);
+        this.ctx.restore();
+        this._drawGrid();
+        this.paths = [];
+      }
+
+      undo() { if (!this.paths.length) return; this.paths.pop(); this._redrawAll(); }
+
+      async toBlobWhiteBg() {
+        const rect = this.canvas.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const off = document.createElement('canvas');
+        off.width = Math.round(rect.width * dpr);
+        off.height = Math.round(rect.height * dpr);
+        const octx = off.getContext('2d');
+        octx.scale(dpr, dpr);
+        octx.fillStyle = '#ffffff';
+        octx.fillRect(0,0,rect.width,rect.height);
+        octx.drawImage(this.canvas, 0, 0);
+        return await new Promise(r => off.toBlob(r, 'image/png', 1.0));
+      }
+
+      resize() {
+        const rect = this.canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return; // 숨김 상태면 skip
+
+        const dpr = window.devicePixelRatio || 1;
+        this.canvas.width  = Math.round(rect.width * dpr);
+        this.canvas.height = Math.round(rect.height * dpr);
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(0,0,rect.width,rect.height);
+
+        this._drawGrid();
+        this._redrawAll();
+      }
+
+      _drawGrid() {
+        const rect = this.canvas.getBoundingClientRect();
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        const h = rect.height;
+        const margin = 16;
+        const mid = Math.round(h/2);
+        ctx.beginPath();
+        ctx.moveTo(margin, mid - 40); ctx.lineTo(rect.width - margin, mid - 40);
+        ctx.moveTo(margin, mid);      ctx.lineTo(rect.width - margin, mid);
+        ctx.moveTo(margin, mid + 40); ctx.lineTo(rect.width - margin, mid + 40);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      _bindPointerEvents() {
+        const c = this.canvas;
+
+        const onDown = (e) => {
+          e.preventDefault();
+          c.setPointerCapture(e.pointerId);
+          this.currentPath = { points: [], erase: this.isErasing, color: this.strokeStyle, size: this.baseSize, pressure: this.usePressure };
+          this.paths.push(this.currentPath);
+          this._addPoint(e);
+        };
+        const onMove = (e) => { if (!this.currentPath) return; this._addPoint(e, true); };
+        const onUp = (e) => {
+          if (!this.currentPath) return;
+          this._addPoint(e, true);
+          this.currentPath = null;
+          c.releasePointerCapture(e.pointerId);
+        };
+
+        c.addEventListener('pointerdown', onDown, {passive:false});
+        c.addEventListener('pointermove', onMove, {passive:false});
+        c.addEventListener('pointerup', onUp, {passive:false});
+        c.addEventListener('pointercancel', onUp, {passive:false});
+        // 모바일 스크롤 방지
+        c.addEventListener('touchstart', (e)=>e.preventDefault(), {passive:false});
+        c.addEventListener('touchmove',  (e)=>e.preventDefault(), {passive:false});
+      }
+
+      _addPoint(e, draw=false) {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const p = (this.usePressure && e.pressure) ? e.pressure : 1;
+        this.currentPath.points.push({x,y,p});
+        if (draw) this._redrawLastSegment();
+        else this._drawDot(x,y,p);
+      }
+
+      _strokeWidth(base, p) {
+        const factor = Math.max(0.3, Math.min(1.0, p));
+        return base * (this.usePressure ? (0.6 + factor*0.8) : 1.0);
+      }
+
+      _redrawAll() {
+        const rect = this.canvas.getBoundingClientRect();
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0,0,rect.width,rect.height);
+        ctx.restore();
+        this._drawGrid();
+        for (const path of this.paths) this._drawPath(path);
+      }
+
+      _drawPath(path) {
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.globalCompositeOperation = path.erase ? 'destination-out' : 'source-over';
+        ctx.strokeStyle = path.color;
+
+        const pts = path.points;
+        if (pts.length === 1) {
+          const w = this._strokeWidth(path.size, pts[0].p);
+          ctx.beginPath();
+          ctx.arc(pts[0].x, pts[0].y, w/2, 0, Math.PI*2);
+          ctx.fillStyle = path.erase ? 'rgba(0,0,0,1)' : path.color;
+          ctx.fill();
+          ctx.restore();
+          return;
+        }
+
+        for (let i=1;i<pts.length;i++){
+          const a = pts[i-1], b = pts[i];
+          const w = this._strokeWidth(path.size, b.p);
+          ctx.lineWidth = w;
+          const cx = (a.x + b.x)/2;
+          const cy = (a.y + b.y)/2;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.quadraticCurveTo(a.x, a.y, cx, cy);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      _redrawLastSegment() {
+        const path = this.paths[this.paths.length-1];
+        if (!path) return;
+        const lastTwo = { ...path, points: path.points.slice(-2) };
+        this._drawPath(lastTwo);
+      }
+
+      _drawDot(x,y,p) {
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.globalCompositeOperation = this.isErasing ? 'destination-out' : 'source-over';
+        ctx.fillStyle = this.isErasing ? 'rgba(0,0,0,1)' : this.strokeStyle;
+        const r = this._strokeWidth(this.baseSize, p)/2;
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // ------------ 제출 ------------
+    async function submitImage() {
+      const loadingEl = document.querySelector('.loading');
+      loadingEl.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
 
       try {
+        let fileToSend = null;
+        if (mode === 'upload') {
+          if (!selectedFile) { alert("이미지를 선택해주세요!"); return; }
+          fileToSend = selectedFile;
+        } else {
+          const blob = await pad.toBlobWhiteBg();
+          if (!blob) { alert("캔버스 이미지를 생성하지 못했습니다."); return; }
+          fileToSend = new File([blob], "handwriting.png", { type: "image/png" });
+        }
+
+        const formData = new FormData();
+        formData.append("file", fileToSend);
+
         const res = await fetch(`http://${window.location.hostname}:8000/evaluate`, {
           method: "POST",
           body: formData,
         });
         if (!res.ok) {
           const error = await res.json();
-          alert("분석 실패: " + error.detail);
+          alert("분석 실패: " + (error.detail || res.status));
           return;
         }
         const result = await res.json();
 
+        // 결과 바인딩
         document.getElementById("score-result").textContent = `${result.score}점`;
         document.getElementById("feedback-text").innerHTML = result.feedback;
 
         const errorList = document.getElementById("error-list");
-        errorList.innerHTML = "";
-        // result.feedback.split(/<br>/).forEach(line => {
-        //   if (line.trim()) {
-        //     const li = document.createElement("li");
-        //     li.innerHTML = line.trim();
-        //     errorList.appendChild(li);
-        //   }
-        // });
         errorList.innerHTML = result.feedback.replace(/<br>/g, '\n');
-        errorList.style.whiteSpace = 'pre-line'; // 줄바꿈 표시
+        errorList.style.whiteSpace = 'pre-line';
 
         document.getElementById("corrected-text").textContent = result.corrected_text;
 
       } catch (err) {
-        console.error("분석 중 오류 발생:", err);
+        console.error("분석 중 오류:", err);
         alert("서버 연결 실패 또는 오류 발생");
+      } finally {
+        loadingEl.classList.add('hidden');
+        document.body.style.overflow = '';
       }
-      finally {
-        loadingEl.classList.add('hidden');   // 완료 후 로딩 숨기기
-        document.body.style.overflow = ''; // 스크롤 복원
-      }
+    }
+
+    // ------------ 탭 ------------
+    function initTabs() {
+      const tabUpload = document.getElementById('tab-upload');
+      const tabDraw   = document.getElementById('tab-draw');
+      const panelUpload = document.getElementById('panel-upload');
+      const panelDraw   = document.getElementById('panel-draw');
+
+      const activate = (m) => {
+        mode = m;
+        tabUpload.classList.toggle('active', m==='upload');
+        tabDraw.classList.toggle('active',   m==='draw');
+        panelUpload.classList.toggle('hidden', m!=='upload');
+        panelDraw.classList.toggle('hidden',   m!=='draw');
+
+        // draw 탭 표시 직후 캔버스 크기 재계산(숨김 초기화 이슈 방지)
+        if (m === 'draw') requestAnimationFrame(() => { if (pad) pad.resize(); });
+      };
+
+      tabUpload.addEventListener('click', ()=>activate('upload'));
+      tabDraw.addEventListener('click',   ()=>activate('draw'));
+
+      activate('upload'); // 기본
+    }
+
+    // ------------ 패드 UI 초기화 ------------
+    function initPad() {
+      const canvas = document.getElementById('pad');
+      pad = new HandwritingPad(canvas);
+
+      const size = document.getElementById('penSize');
+      const sizeVal = document.getElementById('penSizeVal');
+      size.addEventListener('input', ()=>{ sizeVal.textContent = size.value + 'px'; pad.setBaseSize(Number(size.value)); });
+
+      const color = document.getElementById('penColor');
+      color.addEventListener('input', ()=> pad.setStrokeStyle(color.value));
+
+      const press = document.getElementById('pressureToggle');
+      press.addEventListener('change', ()=> pad.setUsePressure(press.checked));
+
+      document.getElementById('undoBtn').addEventListener('click', ()=> pad.undo());
+
+      const eraseToggle = document.getElementById('eraseToggle');
+      eraseToggle.addEventListener('click', ()=>{
+        const on = pad.toggleEraser();
+        eraseToggle.textContent = on ? '지우개 ON' : '지우개 OFF';
+      });
+
+      document.getElementById('clearBtn').addEventListener('click', ()=> pad.clear());
+    }
+
+    // ------------ onload ------------
+    window.onload = () => {
+      initTabs();
+      initPad();
     }
   </script>
 </body>
