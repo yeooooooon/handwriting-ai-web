@@ -6,21 +6,39 @@
   <title>바른 글씨 - 메인</title>
   <link rel="stylesheet" href="/static/globals.css?v=333">
   <link rel="stylesheet" href="/static/styleguide.css?v=333">
-  <link rel="stylesheet" href="/static/main.css?v=333">
+  <link rel="stylesheet" href="/static/main.css?v=334">
   <style>
     .hidden { display: none; }
   </style>
+  <link rel="shortcut icon" href="/static/image/favicon.ico">
+  <link rel="icon" href="/static/image/favicon.ico">
 </head>
-    <body>
-    <main class="hero">
-        <h1 class="logo-title">바른 글씨</h1>
-        <a href="/daily" class="btn">오늘의 손글씨</a>
-        <a href="/index" class="btn">손글씨 업로드</a>
-        <a href="https://github.com/chip446/handwriting-ai-web" target="_blank" class="btn">Github Link</a>
-    </main>
+<body>
+  <header class="site-header">
+    <a href="" class="login">로그인</a>
+    <a href="" class="sign-up">회원가입</a>
+  </header>
+    
+  <div class="hero">
+    <div class="flex">
+      <div class="logo-title">바른 글씨</div>
+        <div class="btns">
+          <a href="/daily" class="btn">오늘의 손글씨</a>
+          <a href="/index" class="btn">손글씨 업로드</a>
+          <a href="https://github.com/chip446/handwriting-ai-web" target="_blank" class="btn">Github Link</a>
+          <!-- 버튼만 추가하고 링크는 변경 예정 -->
+          <a href="https://github.com/chip446/handwriting-ai-web" target="_blank" class="btn">Notion Link</a>
+          <a href="https://github.com/chip446/handwriting-ai-web" target="_blank" class="btn">Figma Link</a>
+        </div>
+    </div>
+    <div class="rank-card">
+      <div class="card-title">순위</div>
+      <div class="rank-list"></div>
+    </div>
+  </div>
 
-    <footer class="footer-copyright">
-        © 2025 바른글씨. All rights reserved.
-    </footer>
-    </body>
+  <footer class="footer-copyright">
+    © 2025 바른글씨. All rights reserved.
+  </footer>
+</body>
 </html>

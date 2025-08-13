@@ -10,13 +10,45 @@ body, html {
   flex-direction: column; /* 위쪽은 hero, 아래쪽은 footer */
 }
 
+.site-header {
+  display: flex;
+  width: 100vw;
+  height: 64px;
+  background-color: #fff;
+  box-sizing: border-box;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.login{
+  margin-right: 30px;
+}
+
+.sign-up{
+  margin-right: 30px;
+}
+
+/* 가운데 영역 */
+.hero {
+  flex: 1; /* 남는 공간 다 차지 → footer를 아래로 밀어줌 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex{
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+}
+
 /* 로고 타이틀 */
 .logo-title {
   font-size: 70px;
   font-family: 'Paperlogy-7Bold', 'Pretendard', sans-serif;
   font-weight: bold;
   color: #1c64ff;
-  margin-bottom: 50px;
+  margin-bottom: 20px;
 }
 
 /* 버튼 공통 스타일 */
@@ -45,13 +77,35 @@ body, html {
   color: #1c64ff;
 }
 
-/* 가운데 영역 */
-.hero {
-  flex: 1; /* 남는 공간 다 차지 → footer를 아래로 밀어줌 */
+.btns{
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.rank-card{
+  position: relative;
+  left: 350px;
+  background: #fff;
+  width: 300px;
+  height: 400px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 8px 8px rgba(0,0,0,0.05);
+}
+
+.card-title{
+  font-size: 30px;
+  text-align: center;
+  font-family: 'Pretendard-Bold', sans-serif;
+}
+
+.rank-list{
+  background: #dae1f8;
+  min-height: 320px;
+  margin-top: 10px;
+  border-radius: 10px;
 }
 
 /* footer */
@@ -60,4 +114,13 @@ body, html {
   padding: 20px 0;
   color: #888;
   font-size: 14px;
+}
+
+/* 반응형: 모바일 */
+@media (max-width: 425px) {
+  .flex{
+    display: flex;
+    flex-direction: column; 
+    gap: 24px;
+  }
 }
