@@ -4,12 +4,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 from fastapi.responses import JSONResponse
-from app.daily_challenge_api import router as challenge_router
 import random
 import os
 
 from app.handwriting_feedback_api import router as handwriting_router
+from app.daily_challenge_api import router as challenge_router
 #from app.paddleOCR_api import router as evaluate_router
+from app.routers.gpt_handwriting_feedback_api import router as gpt_handwriting_router
 
 BASE_DIR = Path(__file__).resolve().parent  # main.py가 있는 폴더.
 
@@ -17,6 +18,7 @@ app = FastAPI()
 app.include_router(handwriting_router)
 app.include_router(challenge_router)
 # app.include_router(evaluate_router)
+app.include_router(gpt_handwriting_router, prefix="/api/gpt", tags=["gpt-handwriting"])
 
 sentences = [
     "저 넓은 세상에서 큰 꿈을 펼쳐라",

@@ -1,38 +1,32 @@
-# ai_feedback.py
-from openai import OpenAI
-import os
+# app/ai_feedback.py
+from typing import Dict
 
-# API 키 설정: 환경변수 또는 직접 키 지정
-client = OpenAI(api_key="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")  # ← 여기에 본인 API 키 직접 작성 가능
+def generate_ai_feedback(recognized_text: str, score_dict: Dict[str, int]) -> str:
+    """
+    기존 프로젝트에 이미 있다면 이 파일은 그대로 사용하세요.
+    없을 경우, 아래 최소 구현을 임시로 사용해도 됩니다.
+    """
+    if not score_dict:
+        return "평가할 글자가 없습니다."
 
-def generate_ai_feedback(text: str, score_dict: dict) -> str:
-    score_lines = "\n".join([f"'{k}': {v}점" for k, v in score_dict.items()])
-    prompt = f"""
-학생이 쓴 글자: "{text}"
+    low = [ch for ch, sc in score_dict.items() if sc < 70]
+    mid = [ch for ch, sc in score_dict.items() if 70 <= sc < 90]
+    high = [ch for ch, sc in score_dict.items() if sc >= 90]
 
-각 글자의 유사도 점수:zz
-{score_lines}
+    parts = []
+    if high:
+        parts.append(f"우수: {', '.join(repr(c) for c in high)}")
+    if mid:
+        parts.append(f"보통: {', '.join(repr(c) for c in mid)}")
+    if low:
+        parts.append(f"개선 필요: {', '.join(repr(c) for c in low)}")
 
-기준: 90점 이상 → 완벽, 70~89점 → 보통, 70점 미만 → 교정 필요
+    tips = []
+    if low:
+        tips.append("획의 시작/끝 밀착과 균형을 의식해 천천히 써보세요.")
+    if mid:
+        tips.append("자간/행간을 일정하게 유지하면 전체 인상이 좋아집니다.")
+    if not tips:
+        tips.append("현재 필체를 유지하며 안정적으로 연습해 보세요.")
 
-위 정보를 바탕으로 아래 조건을 만족하는 AI 피드백 문장을 생성해 주세요:
-1. 따뜻하고 칭찬하는 말투
-2. 잘한 점과 아쉬운 점 모두 언급
-3. 너무 짧거나 너무 길지 않게, 자연스럽고 친절한 문장으로 구성
-4. 교정이 필요한 글자는 어떤 점을 개선하면 좋을지도 알려주세요.
-"""
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "당신은 친절한 손글씨 선생님입니다."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-            max_tokens=500
-        )
-        return response.choices[0].message.content.strip()
-
-    except Exception as e:
-        return f"AI 피드백 생성 오류: {str(e)}"
+    return " / ".join(parts) + "<br>" + " ".join(tips)
