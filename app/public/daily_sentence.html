@@ -8,18 +8,36 @@
   <link rel="stylesheet" href="/static/styleguide.css?v=333">
   <link rel="stylesheet" href="/static/style.css?v=333">
   <style>
-    .hidden { display: none; }
+    .hidden { display:none; }
+    /* 글자별 점수 칩 (index.html과 동일) */
+    .char-scores { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:12px; }
+    .score-chip { padding:8px 10px; border-radius:10px; text-align:center; font-weight:600; font-size:14px; }
+    .chip-good { background:#dcfce7; }   /* >=90 */
+    .chip-ok   { background:#fef3c7; }   /* 70~89 */
+    .chip-bad  { background:#fee2e2; }   /* <70  */
+    .muted { color:#64748b; font-size:12px; }
+
+    /* 파란 박스 내부 구간 요약 (index.html과 동일) */
+    .score-lines { display:grid; row-gap:6px; }
+    .score-lines .line {
+      display:grid;
+      grid-template-columns:70px 90px 10px 1fr;
+      column-gap:6px;
+      align-items:baseline;
+    }
+    .score-lines .label { font-weight:700; }
+    .score-lines .note { color:#334155; opacity:.9; white-space:nowrap; }
+    .score-lines .colon { text-align:center; }
+    .score-lines .chars { word-break:keep-all; }
   </style>
   <link rel="shortcut icon" href="/static/image/favicon.ico">
   <link rel="icon" href="/static/image/favicon.ico">
 </head>
 <body>
-  <!-- 로딩 중 -->
-  <div class="loading hidden">
-    <div class="loading-spinner"></div>
-  </div>
+  <!-- 로딩 -->
+  <div class="loading hidden"><div class="loading-spinner"></div></div>
 
-  <!-- 헤더 -->
+  <!-- 헤더 (index.html과 동일 레이아웃) -->
   <header class="site-header">
     <h1 class="logo">
       <a href="/" class="logo-title">
@@ -31,28 +49,27 @@
 
   <div class="layout-bg">
     <div class="main-wrap">
-      <!-- 오늘의 문장 -->
-      <div class="cards-container1">
-        <div class="today-sentence-card">
+      <!-- 오늘의 문장 카드 -->
+      <div class="cards-container">
+        <div class="upload-card">
           <div class="card-title">오늘의 손글씨 문장</div>
           <div class="highlight-box1" id="daily-sentence">불러오는 중...</div>
         </div>
       </div>
 
-      <!-- 업로드/점수/피드백 -->
+      <!-- 업로드/점수/피드백 (index.html 카드 구조 맞춤) -->
       <div class="cards-container">
         <!-- 입력 카드 -->
-        <div class="upload-card card">
+        <div class="upload-card">
           <div class="card-title">입력 방식 선택</div>
           <div class="upload-desc">이미지를 업로드하거나, 실시간 쓰기 패드에서 직접 적어 제출할 수 있습니다.</div>
 
-          <!-- 탭 -->
           <div class="tabbar">
             <button class="tab-btn active" id="tab-upload">이미지 업로드</button>
             <button class="tab-btn" id="tab-draw">실시간 쓰기 (베타)</button>
           </div>
 
-          <!-- 이미지 업로드 패널 -->
+          <!-- 업로드 -->
           <div id="panel-upload">
             <div class="upload-box">
               <img id="preview" class="preview-image hidden" alt="미리보기 이미지">
@@ -61,7 +78,7 @@
             </div>
           </div>
 
-          <!-- 실시간 쓰기 패널 -->
+          <!-- 드로잉 -->
           <div id="panel-draw" class="hidden">
             <div class="canvas-wrap">
               <div class="pad-toolbar">
@@ -86,7 +103,7 @@
               <div class="pad-canvas-box">
                 <canvas id="pad" class="pad-canvas"></canvas>
               </div>
-              <div class="note">팁: 펜/터치 지원 기기는 필압(e.pressure)에 따라 선 굵기가 변합니다. (브라우저/기기 지원 시)</div>
+              <div class="note">팁: 펜/터치 지원 기기는 필압(e.pressure)에 따라 선 굵기가 변합니다.</div>
             </div>
           </div>
 
@@ -94,29 +111,32 @@
             <button class="btn blue1" onclick="submitImage()">분석하기</button>
             <button class="btn outline" onclick="location.reload()">초기화</button>
           </div>
+
           <div id="error-message" class="error-message hidden"></div>
           <div id="success-message" class="success-message hidden"></div>
         </div>
 
-        <!-- 분석 결과 -->
-        <div class="score-card card">
+        <!-- 점수 -->
+        <div class="score-card">
           <div class="card-title">손글씨 점수</div>
           <div class="score-flex">
             <div class="score-circle" id="score-result">-</div>
             <div class="highlight-box2 small" id="feedback-text">분석 후 결과가 여기에 표시됩니다.</div>
           </div>
+          <!-- 글자별 점수 칩 -->
+          <div id="char-scores" class="char-scores"></div>
         </div>
 
         <!-- 인식된 글자 -->
-        <div class="latter-card card">
+        <div class="latter-card">
           <div class="card-title">인식된 글자</div>
           <p id="corrected-text" class="correct-text"></p>
         </div>
 
-        <!-- 피드백 결과 -->
-        <div class="feedback-card card">
+        <!-- 피드백 -->
+        <div class="feedback-card">
           <div class="card-title">손글씨 피드백</div>
-          <ul id="error-list" class="fb-row"></ul>
+          <div id="error-list" class="fb-row"></div>
         </div>
       </div>
     </div>
@@ -127,21 +147,22 @@
   </footer>
 
   <script>
-    // ---------------- 공통 상태 ----------------
-    let selectedFile = null;     // 업로드 파일 모드
+    const API_BASE = `${location.protocol}//${location.hostname}:8000`;
+    let selectedFile = null;   // 업로드 모드 파일
+    let mode = 'upload';       // 'upload' | 'draw'
+    let pad = null;
     let todaySentence = "";
-    let mode = "upload";         // 'upload' | 'draw'
 
-    // ---------------- 오늘의 문장 ----------------
-    async function loadDailySentence(force = false) {
-      const res = await fetch(`http://${window.location.hostname}:8000/daily_sentence`);
+    // ===== 오늘의 문장 =====
+    async function loadDailySentence(force=false){
+      const res = await fetch(`${API_BASE}/daily_sentence`);
       const data = await res.json();
       if (force && data.sentence === todaySentence) return loadDailySentence(true);
-      todaySentence = data.sentence;
-      document.getElementById("daily-sentence").textContent = todaySentence;
+      todaySentence = data.sentence || "";
+      document.getElementById("daily-sentence").textContent = todaySentence || "(문장 없음)";
     }
 
-    // ---------------- 이미지 업로드 ----------------
+    // ===== 파일 선택 & DnD =====
     function previewImage() {
       const input = document.createElement("input");
       input.type = "file";
@@ -164,7 +185,6 @@
       input.click();
     }
 
-    // 드래그 앤 드롭
     (function initDnd(){
       const box = document.querySelector('.upload-box');
       if (!box) return;
@@ -186,7 +206,7 @@
       });
     })();
 
-    // ---------------- 실시간 쓰기(캔버스) ----------------
+    // ===== 캔버스 패드 =====
     class HandwritingPad {
       constructor(canvas) {
         this.canvas = canvas;
@@ -195,207 +215,155 @@
         this.baseSize = 4;
         this.usePressure = true;
         this.isErasing = false;
-
-        this.paths = []; // undo 스택
+        this.paths = [];
         this.currentPath = null;
 
-        this.resize();                 // ← 초기 리사이즈
+        this.resize();
         window.addEventListener('resize', () => this.resize());
-
         this._bindPointerEvents();
         this._drawGrid();
       }
-
-      setStrokeStyle(color) { this.strokeStyle = color; }
-      setBaseSize(px) { this.baseSize = px; }
+      setStrokeStyle(color){ this.strokeStyle = color; }
+      setBaseSize(px){ this.baseSize = px; }
       setUsePressure(on){ this.usePressure = on; }
-      toggleEraser(){
-        this.isErasing = !this.isErasing;
-        return this.isErasing;
-      }
+      toggleEraser(){ this.isErasing = !this.isErasing; return this.isErasing; }
 
-      clear() {
-        const rect = this.canvas.getBoundingClientRect();
+      clear(){
+        const rect=this.canvas.getBoundingClientRect();
         this.ctx.save();
-        this.ctx.globalCompositeOperation = 'source-over';
-        this.ctx.fillStyle = '#ffffff';
+        this.ctx.globalCompositeOperation='source-over';
+        this.ctx.fillStyle='#ffffff';
         this.ctx.fillRect(0,0,rect.width,rect.height);
         this.ctx.restore();
         this._drawGrid();
-        this.paths = [];
+        this.paths=[];
       }
+      undo(){ if(!this.paths.length) return; this.paths.pop(); this._redrawAll(); }
 
-      undo() {
-        if (!this.paths.length) return;
-        this.paths.pop();
-        this._redrawAll();
-      }
-
-      async toBlobWhiteBg() {
-        const rect = this.canvas.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
-        const off = document.createElement('canvas');
-        off.width = Math.round(rect.width * dpr);
-        off.height = Math.round(rect.height * dpr);
-        const octx = off.getContext('2d');
-        octx.scale(dpr, dpr);
-        octx.fillStyle = '#ffffff';
+      async toBlobWhiteBg(){
+        const rect=this.canvas.getBoundingClientRect();
+        const dpr=window.devicePixelRatio||1;
+        const off=document.createElement('canvas');
+        off.width=Math.round(rect.width*dpr);
+        off.height=Math.round(rect.height*dpr);
+        const octx=off.getContext('2d');
+        octx.scale(dpr,dpr);
+        octx.fillStyle='#ffffff';
         octx.fillRect(0,0,rect.width,rect.height);
-        octx.drawImage(this.canvas, 0, 0);
-        return await new Promise(r => off.toBlob(r, 'image/png', 1.0));
+        octx.drawImage(this.canvas,0,0);
+        return await new Promise(r=>off.toBlob(r,'image/png',1.0));
       }
 
-      // ← 외부에서 호출 가능한 리사이즈(탭 전환 후 호출)
-      resize() {
-        const rect = this.canvas.getBoundingClientRect();
-        if (!rect.width || !rect.height) return; // 숨김 상태면 skip
-
-        const dpr = window.devicePixelRatio || 1;
-        this.canvas.width  = Math.round(rect.width * dpr);
-        this.canvas.height = Math.round(rect.height * dpr);
-        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-        this.ctx.fillStyle = '#ffffff';
+      resize(){
+        const rect=this.canvas.getBoundingClientRect();
+        if(!rect.width||!rect.height) return;
+        const dpr=window.devicePixelRatio||1;
+        this.canvas.width=Math.round(rect.width*dpr);
+        this.canvas.height=Math.round(rect.height*dpr);
+        this.ctx.setTransform(dpr,0,0,dpr,0,0);
+        this.ctx.fillStyle='#ffffff';
         this.ctx.fillRect(0,0,rect.width,rect.height);
-
         this._drawGrid();
         this._redrawAll();
       }
 
-      _drawGrid() {
-        const rect = this.canvas.getBoundingClientRect();
-        const ctx = this.ctx;
-        ctx.save();
-        ctx.strokeStyle = '#e2e8f0';
-        ctx.lineWidth = 1;
-        const h = rect.height;
-        const margin = 16;
-        const mid = Math.round(h/2);
+      _drawGrid(){
+        const rect=this.canvas.getBoundingClientRect(), ctx=this.ctx;
+        ctx.save(); ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1;
+        const h=rect.height, margin=16, mid=Math.round(h/2);
         ctx.beginPath();
-        ctx.moveTo(margin, mid - 40); ctx.lineTo(rect.width - margin, mid - 40);
-        ctx.moveTo(margin, mid);      ctx.lineTo(rect.width - margin, mid);
-        ctx.moveTo(margin, mid + 40); ctx.lineTo(rect.width - margin, mid + 40);
-        ctx.stroke();
-        ctx.restore();
+        ctx.moveTo(margin, mid-40); ctx.lineTo(rect.width-margin, mid-40);
+        ctx.moveTo(margin, mid);    ctx.lineTo(rect.width-margin, mid);
+        ctx.moveTo(margin, mid+40); ctx.lineTo(rect.width-margin, mid+40);
+        ctx.stroke(); ctx.restore();
       }
 
-      _bindPointerEvents() {
-        const c = this.canvas;
-
-        const onDown = (e) => {
-          e.preventDefault();
-          c.setPointerCapture(e.pointerId);
-          this.currentPath = { points: [], erase: this.isErasing, color: this.strokeStyle, size: this.baseSize, pressure: this.usePressure };
-          this.paths.push(this.currentPath);
-          this._addPoint(e);
-        };
-
-        const onMove = (e) => {
-          if (!this.currentPath) return;
-          this._addPoint(e, true);
-        };
-
-        const onUp = (e) => {
-          if (!this.currentPath) return;
-          this._addPoint(e, true);
-          this.currentPath = null;
-          c.releasePointerCapture(e.pointerId);
-        };
-
+      _bindPointerEvents(){
+        const c=this.canvas;
+        const onDown=(e)=>{ e.preventDefault(); c.setPointerCapture(e.pointerId);
+          this.currentPath={points:[], erase:this.isErasing, color:this.strokeStyle, size:this.baseSize, pressure:this.usePressure};
+          this.paths.push(this.currentPath); this._addPoint(e); };
+        const onMove=(e)=>{ if(!this.currentPath) return; this._addPoint(e,true); };
+        const onUp=(e)=>{ if(!this.currentPath) return; this._addPoint(e,true); this.currentPath=null; c.releasePointerCapture(e.pointerId); };
         c.addEventListener('pointerdown', onDown, {passive:false});
         c.addEventListener('pointermove', onMove, {passive:false});
         c.addEventListener('pointerup', onUp, {passive:false});
         c.addEventListener('pointercancel', onUp, {passive:false});
-        // 모바일 스크롤 방지
-        c.addEventListener('touchstart', (e)=>e.preventDefault(), {passive:false});
-        c.addEventListener('touchmove',  (e)=>e.preventDefault(), {passive:false});
+        c.addEventListener('touchstart', e=>e.preventDefault(), {passive:false});
+        c.addEventListener('touchmove',  e=>e.preventDefault(), {passive:false});
       }
 
-      _addPoint(e, draw=false) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const p = (this.usePressure && e.pressure) ? e.pressure : 1;
+      _addPoint(e, draw=false){
+        const rect=this.canvas.getBoundingClientRect();
+        const x=e.clientX-rect.left, y=e.clientY-rect.top;
+        const p=(this.usePressure && e.pressure)?e.pressure:1;
         this.currentPath.points.push({x,y,p});
-        if (draw) this._redrawLastSegment();
-        else this._drawDot(x,y,p);
+        if(draw) this._redrawLastSegment(); else this._drawDot(x,y,p);
       }
-
-      _strokeWidth(base, p) {
-        const factor = Math.max(0.3, Math.min(1.0, p));
-        return base * (this.usePressure ? (0.6 + factor*0.8) : 1.0);
+      _strokeWidth(base,p){ const f=Math.max(0.3, Math.min(1.0,p)); return base*(this.usePressure?(0.6+f*0.8):1.0); }
+      _redrawAll(){
+        const rect=this.canvas.getBoundingClientRect(), ctx=this.ctx;
+        ctx.save(); ctx.globalCompositeOperation='source-over'; ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,rect.width,rect.height); ctx.restore();
+        this._drawGrid(); for(const path of this.paths) this._drawPath(path);
       }
-
-      _redrawAll() {
-        const rect = this.canvas.getBoundingClientRect();
-        const ctx = this.ctx;
-        ctx.save();
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0,0,rect.width,rect.height);
-        ctx.restore();
-        this._drawGrid();
-
-        for (const path of this.paths) this._drawPath(path);
-      }
-
-      _drawPath(path) {
-        const ctx = this.ctx;
-        ctx.save();
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.globalCompositeOperation = path.erase ? 'destination-out' : 'source-over';
-        ctx.strokeStyle = path.color;
-
-        const pts = path.points;
-        if (pts.length === 1) {
-          const w = this._strokeWidth(path.size, pts[0].p);
-          ctx.beginPath();
-          ctx.arc(pts[0].x, pts[0].y, w/2, 0, Math.PI*2);
-          ctx.fillStyle = path.erase ? 'rgba(0,0,0,1)' : path.color;
-          ctx.fill();
-          ctx.restore();
-          return;
-        }
-
-        for (let i=1;i<pts.length;i++){
-          const a = pts[i-1], b = pts[i];
-          const w = this._strokeWidth(path.size, b.p);
-          ctx.lineWidth = w;
-
-          const cx = (a.x + b.x)/2;
-          const cy = (a.y + b.y)/2;
-
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.quadraticCurveTo(a.x, a.y, cx, cy);
-          ctx.stroke();
-        }
+      _drawPath(path){
+        const ctx=this.ctx; ctx.save(); ctx.lineCap='round'; ctx.lineJoin='round';
+        ctx.globalCompositeOperation=path.erase?'destination-out':'source-over'; ctx.strokeStyle=path.color;
+        const pts=path.points;
+        if(pts.length===1){ const w=this._strokeWidth(path.size, pts[0].p);
+          ctx.beginPath(); ctx.arc(pts[0].x, pts[0].y, w/2, 0, Math.PI*2);
+          ctx.fillStyle=path.erase?'rgba(0,0,0,1)':path.color; ctx.fill(); ctx.restore(); return; }
+        for(let i=1;i<pts.length;i++){ const a=pts[i-1], b=pts[i]; const w=this._strokeWidth(path.size, b.p);
+          ctx.lineWidth=w; const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.quadraticCurveTo(a.x,a.y,cx,cy); ctx.stroke(); }
         ctx.restore();
       }
-
-      _redrawLastSegment() {
-        const path = this.paths[this.paths.length-1];
-        if (!path) return;
-        const lastTwo = { ...path, points: path.points.slice(-2) };
-        this._drawPath(lastTwo);
-      }
-
-      _drawDot(x,y,p) {
-        const ctx = this.ctx;
-        ctx.save();
-        ctx.globalCompositeOperation = this.isErasing ? 'destination-out' : 'source-over';
-        ctx.fillStyle = this.isErasing ? 'rgba(0,0,0,1)' : this.strokeStyle;
-        const r = this._strokeWidth(this.baseSize, p)/2;
-        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
-        ctx.restore();
-      }
+      _redrawLastSegment(){ const path=this.paths[this.paths.length-1]; if(!path) return; const lastTwo={...path, points:path.points.slice(-2)}; this._drawPath(lastTwo); }
+      _drawDot(x,y,p){ const ctx=this.ctx; ctx.save(); ctx.globalCompositeOperation=this.isErasing?'destination-out':'source-over';
+        ctx.fillStyle=this.isErasing?'rgba(0,0,0,1)':this.strokeStyle; const r=this._strokeWidth(this.baseSize,p)/2;
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.restore(); }
     }
 
-    let pad = null;
+    function renderCharScores(items){
+      const box = document.getElementById('char-scores');
+      box.innerHTML = '';
+      if (!items || !items.length) {
+        box.innerHTML = '<div class="muted">글자별 점수를 표시할 수 없습니다.</div>';
+        return;
+      }
+      items.forEach(({char, score})=>{
+        const chip = document.createElement('div');
+        let cls = (score < 70) ? 'chip-bad' : (score < 90 ? 'chip-ok' : 'chip-good');
+        chip.className = `score-chip ${cls}`;
+        chip.textContent = `${char} ${score}점`;
+        box.appendChild(chip);
+      });
+    }
 
-    // ---------------- 제출 ----------------
-    async function submitImage() {
+    function buildRangeSummary(items){
+      const buckets = { bad:[], ok:[], good:[] };
+      (items||[]).forEach(({char,score})=>{
+        const ch=(char||'').trim(); if(!ch) return;
+        const s=Number(score)||0;
+        if(s>=90) buckets.good.push(ch);
+        else if(s>=70) buckets.ok.push(ch);
+        else buckets.bad.push(ch);
+      });
+      const row = (range, note, arr) => `
+        <div class="line">
+          <span class="label">${range}</span>
+          <span class="note">(${note})</span>
+          <span class="colon">:</span>
+          <span class="chars">${arr.length ? arr.join(', ') : '-'}</span>
+        </div>`;
+      return `<div class="score-lines">
+        ${row('0~69점','부족한 글씨',buckets.bad)}
+        ${row('70~89점','조금 부족한 글씨',buckets.ok)}
+        ${row('90~100점','완벽한 글씨',buckets.good)}
+      </div>`;
+    }
+
+    // ===== 제출 =====
+    async function submitImage(){
       const errorMsg = document.getElementById("error-message");
       const successMsg = document.getElementById("success-message");
       errorMsg.classList.add("hidden");
@@ -405,9 +373,8 @@
       loadingEl.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
 
-      try {
+      try{
         let fileToSend = null;
-
         if (mode === 'upload') {
           if (!selectedFile) { alert("이미지를 선택해주세요!"); return; }
           fileToSend = selectedFile;
@@ -419,54 +386,49 @@
 
         const formData = new FormData();
         formData.append("file", fileToSend);
-        formData.append("target", todaySentence);
 
-        const res = await fetch(`http://${window.location.hostname}:8000/evaluate`, {
-          method: "POST",
-          body: formData,
-        });
+        // GPT 엔진 사용 (index.html과 동일 엔드포인트)
+        const res = await fetch(`${API_BASE}/api/gpt/evaluate`, { method:"POST", body:formData });
         const result = await res.json();
+        if (!res.ok) { alert("분석 실패: " + (result.detail || res.status)); return; }
 
-        // 문장 일치 확인
-        const cleanText = result.recognized_text?.trim().replace(/\s/g, "");
-        const targetClean = todaySentence.trim().replace(/\s/g, "");
+        // --- "오늘의 문장" 일치 검증 (공백 제거 후 비교) ---
+        const cleanText = (result.recognized_text || '').trim().replace(/\s/g, "");
+        const targetClean = (todaySentence || '').trim().replace(/\s/g, "");
         if (cleanText !== targetClean) {
+          document.getElementById("score-result").textContent = '-';
+          document.getElementById("feedback-text").textContent = '분석 후 결과가 여기에 표시됩니다.';
+          document.getElementById("char-scores").innerHTML = '';
+          document.getElementById("corrected-text").textContent = '';
+          document.getElementById("error-list").textContent = '';
+
           errorMsg.textContent = "문장이 일치하지 않습니다. 다시 작성해주세요.";
           errorMsg.classList.remove("hidden");
           return;
         }
 
-        // 결과 바인딩
+        // 인식 문장
+        document.getElementById("corrected-text").textContent = result.corrected_text || result.recognized_text || '';
+
+        // 숫자 점수
         document.getElementById("score-result").textContent = `${result.score}점`;
-        document.getElementById("feedback-text").innerHTML = result.feedback;
 
+        // 글자별 점수 칩
+        const seq = result.char_scores_seq || Object.entries(result.char_scores || {}).map(([char,score])=>({char,score}));
+        renderCharScores(seq);
+
+        // 파란 박스: 구간 요약
+        document.getElementById("feedback-text").innerHTML = buildRangeSummary(seq);
+
+        // 하단 카드: GPT 피드백 본문
         const errorList = document.getElementById("error-list");
-        errorList.innerHTML = "";
-        result.feedback.split(/<br>/).forEach(line => {
-          if (line.trim()) {
-            const li = document.createElement("li");
-            li.innerHTML = line.trim();
-            errorList.appendChild(li);
-          }
-        });
-
-        const correctedText = document.getElementById("corrected-text");
-        correctedText.innerHTML = "";
-        if (result.char_scores) {
-          for (const [char, score] of Object.entries(result.char_scores)) {
-            const span = document.createElement("span");
-            span.style.marginRight = "10px";
-            span.textContent = `${char}(${score}점)`;
-            correctedText.appendChild(span);
-          }
-        } else {
-          correctedText.textContent = result.corrected_text;
-        }
+        errorList.innerHTML = (result.feedback || '').replace(/<br>/g, '\n');
+        errorList.style.whiteSpace = 'pre-line';
 
         successMsg.textContent = "✅ 제출 완료!";
         successMsg.classList.remove("hidden");
 
-      } catch (err) {
+      } catch (err){
         console.error("분석 오류:", err);
         alert("서버 오류 또는 연결 실패");
       } finally {
@@ -475,67 +437,48 @@
       }
     }
 
-    // ---------------- 탭 ----------------
-    function initTabs() {
-      const tabUpload = document.getElementById('tab-upload');
-      const tabDraw   = document.getElementById('tab-draw');
-      const panelUpload = document.getElementById('panel-upload');
-      const panelDraw   = document.getElementById('panel-draw');
-
-      const activate = (m) => {
-        mode = m;
+    // ===== 탭 =====
+    function initTabs(){
+      const tabUpload=document.getElementById('tab-upload');
+      const tabDraw=document.getElementById('tab-draw');
+      const panelUpload=document.getElementById('panel-upload');
+      const panelDraw=document.getElementById('panel-draw');
+      const activate=(m)=>{
+        mode=m;
         tabUpload.classList.toggle('active', m==='upload');
-        tabDraw.classList.toggle('active',   m==='draw');
+        tabDraw.classList.toggle('active', m==='draw');
         panelUpload.classList.toggle('hidden', m!=='upload');
-        panelDraw.classList.toggle('hidden',   m!=='draw');
-
-        // draw를 화면에 보인 직후 캔버스 크기 재계산(숨김 초기화 이슈 방지)
-        if (m === 'draw') {
-          requestAnimationFrame(() => { if (pad) pad.resize(); });
-        }
+        panelDraw.classList.toggle('hidden', m!=='draw');
+        if (m==='draw') requestAnimationFrame(()=>{ if(pad) pad.resize(); });
       };
-
       tabUpload.addEventListener('click', ()=>activate('upload'));
-      tabDraw.addEventListener('click',   ()=>activate('draw'));
-
-      activate('upload'); // 기본 모드
+      tabDraw.addEventListener('click', ()=>activate('draw'));
+      activate('upload');
     }
 
-    // ---------------- 패드 초기화 ----------------
-    function initPad() {
-      const canvas = document.getElementById('pad');
-      pad = new HandwritingPad(canvas);
-
-      const size = document.getElementById('penSize');
-      const sizeVal = document.getElementById('penSizeVal');
-      size.addEventListener('input', ()=>{
-        sizeVal.textContent = size.value + 'px';
-        pad.setBaseSize(Number(size.value));
-      });
-
-      const color = document.getElementById('penColor');
+    // ===== 패드 초기화 =====
+    function initPad(){
+      const canvas=document.getElementById('pad');
+      pad=new HandwritingPad(canvas);
+      const size=document.getElementById('penSize');
+      const sizeVal=document.getElementById('penSizeVal');
+      size.addEventListener('input', ()=>{ sizeVal.textContent=size.value+'px'; pad.setBaseSize(Number(size.value)); });
+      const color=document.getElementById('penColor');
       color.addEventListener('input', ()=> pad.setStrokeStyle(color.value));
-
-      const press = document.getElementById('pressureToggle');
+      const press=document.getElementById('pressureToggle');
       press.addEventListener('change', ()=> pad.setUsePressure(press.checked));
-
       document.getElementById('undoBtn').addEventListener('click', ()=> pad.undo());
-
-      const eraseToggle = document.getElementById('eraseToggle');
-      eraseToggle.addEventListener('click', ()=>{
-        const on = pad.toggleEraser();
-        eraseToggle.textContent = on ? '지우개 ON' : '지우개 OFF';
-      });
-
+      const eraseToggle=document.getElementById('eraseToggle');
+      eraseToggle.addEventListener('click', ()=>{ const on=pad.toggleEraser(); eraseToggle.textContent=on?'지우개 ON':'지우개 OFF'; });
       document.getElementById('clearBtn').addEventListener('click', ()=> pad.clear());
     }
 
-    // ---------------- onload ----------------
+    // ===== onload =====
     window.onload = () => {
       loadDailySentence();
       initTabs();
       initPad();
-    }
+    };
   </script>
 </body>
 </html>
