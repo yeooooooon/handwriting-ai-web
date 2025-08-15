@@ -458,21 +458,6 @@
       document.getElementById('clearBtn').addEventListener('click', ()=> pad.clear());
     }
 
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      try {
-        const textToSave = result.recognized_text || result.corrected_text || '문장 식별 불가';
-        await fetch('/user/scores', {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ text: textToSave, score: Number(result.score) })
-        });
-        // 실패하더라도 서비스 흐름은 계속 (알림은 생략)
-      } catch(e) { /* no-op */ }
-    }
     // ------------ onload ------------
     window.onload = () => {
       initTabs();

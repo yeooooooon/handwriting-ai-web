@@ -9,34 +9,41 @@
   <link rel="stylesheet" href="/static/main.css?v=334">
   <style>
     .hidden { display: none; }
-
-    /* 상단 네비게이션 간단 스타일 */
-    .top-nav {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      padding: 12px 16px;
-    }
-    /* 버튼을 조금 작게 */
-    .btn.small {
-      padding: 8px 12px;
-      font-size: 14px;
-      line-height: 1.1;
-    }
   </style>
   <link rel="shortcut icon" href="/static/image/favicon.ico">
   <link rel="icon" href="/static/image/favicon.ico">
 </head>
-    <body>
-    <main class="hero">
-        <h1 class="logo-title">바른 글씨</h1>
-        <a href="/daily" class="btn">오늘의 손글씨</a>
-        <a href="/index" class="btn">손글씨 업로드</a>
-        <a href="https://github.com/chip446/handwriting-ai-web" target="_blank" class="btn">Github Link</a>
-    </main>
+<body>
+  <header class="site-header">
+    <a href="" class="login">로그인</a>
+    <a href="" class="sign-up">회원가입</a>
+</header>
 
-    <footer class="footer-copyright">
-        © 2025 바른글씨. All rights reserved.
-    </footer>
-    </body>
+<div class="layout-bg">
+    <div class="main-wrap">
+      <div class="cards-container">
+        <div class="menu">
+            <div class="logo-title">바른 글씨</div>
+            <div class="btns">
+                <a href="/daily" class="btn">오늘의 손글씨</a>
+                <a href="/index" class="btn">손글씨 업로드</a>
+                <a href="https://github.com/chip446/handwriting-ai-web" target="_blank" class="btn">Github</a>
+                <a href="https://www.notion.so/231b19da328080238b73f67d9df31e91?source=copy_link" target="_blank" class="btn">Notion</a>
+                <a href="https://www.figma.com/design/AXzjljAWndTRD3wGK6Nnyd/Untitled?node-id=0-1&t=BJZ2dQL2yncHWvfR-1" target="_blank" class="btn">Figma</a>
+            </div>
+        </div>
+
+        <div class="rank-card">
+            <div class="card-title">순위</div>
+            <div class="rank-list"></div>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <!--footer 저작권-->
+  <footer class="footer-copyright">
+    © 2025 바른글씨. All rights reserved.
+  </footer>
+</body>
 </html>
