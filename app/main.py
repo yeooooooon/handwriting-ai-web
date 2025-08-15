@@ -5,10 +5,6 @@ from fastapi.responses import FileResponse
 from pathlib import Path
 from fastapi.responses import JSONResponse
 from app.daily_challenge_api import router as challenge_router
-from app.db import Base, engine
-from app import models
-from app.auth_api import router as auth_router
-from app.user_api import router as user_router
 import random
 import os
 
@@ -16,13 +12,10 @@ from app.handwriting_feedback_api import router as handwriting_router
 #from app.paddleOCR_api import router as evaluate_router
 
 BASE_DIR = Path(__file__).resolve().parent  # main.py가 있는 폴더.
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 app.include_router(handwriting_router)
 app.include_router(challenge_router)
-app.include_router(auth_router)
-app.include_router(user_router)
 # app.include_router(evaluate_router)
 
 sentences = [
@@ -65,13 +58,6 @@ def get_daily_sentence():
     sentence = random.choice(sentences)
     return JSONResponse(content={"sentence": sentence})
 
-@app.get("/login", response_class=FileResponse)
-def serve_main():
-    return BASE_DIR / "public" / "login.html"
-
-@app.get("/profile", response_class=FileResponse)
-def serve_main():
-    return BASE_DIR / "public" / "profile.html"
 
 # test.html 서빙
 #@app.get("/test2", response_class=FileResponse)
