@@ -1,6 +1,11 @@
 /* 기본 스타일 리셋 및 뷰포트 설정 */
 body, html {
-  margin: 0; padding: 0; width: 100vw; height: 100vh;
+  margin: 0; 
+  padding: 0;  
+  width: 100%;
+  height: auto;
+  min-height: 100dvh;
+  overflow-x: hidden;
   font-family: 'Pretendard', 'sans-serif';
   background: #efefef;
 }
