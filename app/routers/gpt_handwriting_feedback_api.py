@@ -1,10 +1,15 @@
 # app/routers/gpt_handwriting_feedback_api.py
 # -*- coding: utf-8 -*-
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Request
 from fastapi.responses import JSONResponse
 from PIL import Image
-import base64, io, json, os
-
+import base64, io, json, os, datetime
+import time
+from app.routers.auth_fs import (
+    bearer_token_from_request,
+    get_username_from_token,
+    append_user_score,
+)
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -12,6 +17,13 @@ except Exception:
     pass
 
 from openai import OpenAI
+
+# ⬇ 추가: 파일 기반 세션/저장 유틸 재사용
+from app.routers.auth_fs import (
+    bearer_token_from_request,
+    get_username_from_token,
+    append_user_score,
+)
 
 router = APIRouter()
 MAX_CHAR_LIMIT = 20
@@ -76,7 +88,7 @@ def _call_gpt_vision_and_score(image_bytes: bytes) -> dict:
     return data
 
 @router.post("/evaluate")
-async def evaluate_handwriting(file: UploadFile = File(...)):
+async def evaluate_handwriting(request: Request, file: UploadFile = File(...)):
     if file.content_type not in ("image/png", "image/jpeg", "image/webp"):
         raise HTTPException(status_code=400, detail="이미지 파일(png/jpeg/webp)만 업로드 가능합니다.")
     try:
@@ -105,20 +117,34 @@ async def evaluate_handwriting(file: UploadFile = File(...)):
             sc = 0
         char_scores_seq.append({"char": ch, "score": sc})
         if ch and ch not in score_map:
-            score_map[ch] = sc  # 최초값만 기록(중복은 리스트에서 표현)
+            score_map[ch] = sc
 
-    # overall 보정(없으면 글자 평균)
     if (overall_score <= 0.0) and char_scores_seq:
         overall_score = sum(i["score"] for i in char_scores_seq) / len(char_scores_seq)
     avg_score = max(0.0, min(100.0, overall_score))
+
+    # ⬇ 로그인 상태면 점수 저장
+    try:
+        token = bearer_token_from_request(request)
+        username = get_username_from_token(token or "")
+        if username:
+            append_user_score(username, {
+                "ts": int(time.time()),
+                "score": round(avg_score, 2),
+                "source": "gpt",
+                "text": (recognized_text or "")[:100]
+            })
+    except Exception:
+        # 저장 실패는 채점 결과 반환에 영향 주지 않음
+        pass
 
     return JSONResponse(content={
         "match": True,
         "recognized_text": recognized_text,
         "corrected_text": recognized_text,
-        "score": round(avg_score, 2),          # 원형 점수
-        "feedback": gpt.get("feedback", ""),   # GPT 원문 피드백
-        "char_scores": score_map,              # (호환용)
-        "char_scores_seq": char_scores_seq,    # ← 프론트는 이걸 사용해 글자별 표시
+        "score": round(avg_score, 2),
+        "feedback": gpt.get("feedback", ""),
+        "char_scores": score_map,
+        "char_scores_seq": char_scores_seq,
         "engine": "gpt-4o-mini"
     })

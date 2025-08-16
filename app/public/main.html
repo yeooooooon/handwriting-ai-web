@@ -15,28 +15,30 @@
 </head>
 <body>
   <header class="site-header">
-    <a href="" class="login">로그인</a>
-    <a href="" class="sign-up">회원가입</a>
-</header>
+    <a class="profile hidden" href="javascript:void(0)">내 점수</a>
+    <a class="sign-up" href="javascript:void(0)">회원가입</a>
+    <a class="login" href="javascript:void(0)">로그인</a>
+  </header>
 
-<div class="layout-bg">
+  <div class="layout-bg">
     <div class="main-wrap">
       <div class="cards-container">
         <div class="menu">
-            <div class="logo-title">바른 글씨</div>
-            <div class="btns">
-                <a href="/daily" class="btn">오늘의 손글씨</a>
-                <a href="/index" class="btn">손글씨 업로드</a>
-                <a href="https://github.com/chip446/handwriting-ai-web" target="_blank" class="btn">Github</a>
-                <a href="https://www.notion.so/231b19da328080238b73f67d9df31e91?source=copy_link" target="_blank" class="btn">Notion</a>
-                <a href="https://www.figma.com/design/AXzjljAWndTRD3wGK6Nnyd/Untitled?node-id=0-1&t=BJZ2dQL2yncHWvfR-1" target="_blank" class="btn">Figma</a>
-            </div>
+          <div class="logo-title">바른 글씨</div>
+          <div class="btns">
+            <a href="/daily" class="btn">오늘의 손글씨</a>
+            <a href="/index" class="btn">손글씨 업로드</a>
+            <a href="https://github.com/chip446/handwriting-ai-web" target="_blank" class="btn">Github</a>
+            <a href="https://www.notion.so/231b19da328080238b73f67d9df31e91?source=copy_link" target="_blank" class="btn">Notion</a>
+            <a href="https://www.figma.com/design/AXzjljAWndTRD3wGK6Nnyd/Untitled?node-id=0-1&t=BJZ2dQL2yncHWvfR-1" target="_blank" class="btn">Figma</a>
+          </div>
         </div>
 
+        <!-- 그대로 유지: 순위 카드 -->
         <div class="rank-card">
-            <div class="card-title">순위</div>
-            <div class="rank-list"></div>
-          </div>
+          <div class="card-title">순위</div>
+          <div class="rank-list"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -45,5 +47,117 @@
   <footer class="footer-copyright">
     © 2025 바른글씨. All rights reserved.
   </footer>
+
+  <script>
+    // ===== 기본 설정 =====
+    const API_BASE = `${location.protocol}//${location.hostname}:8000`;
+
+    // ===== 인증 유틸 (로컬스토리지 기반) =====
+    const Auth = {
+      get token()    { return localStorage.getItem('token') || ''; },
+      set token(v)   { v ? localStorage.setItem('token', v) : localStorage.removeItem('token'); },
+      get username() { return localStorage.getItem('username') || ''; },
+      set username(v){ v ? localStorage.setItem('username', v) : localStorage.removeItem('username'); },
+    };
+
+    async function signupPrompt(){
+      const username = prompt("회원가입 - 아이디");
+      if(!username) return;
+      const password = prompt("회원가입 - 비밀번호(데모)");
+      if(!password) return;
+      const res = await fetch(`/auth/register`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok){ alert(data.detail || "회원가입 실패"); return; }
+      alert("회원가입 완료! 로그인 해주세요.");
+    }
+
+    async function loginPrompt(){
+      const username = prompt("로그인 - 아이디");
+      if(!username) return;
+      const password = prompt("로그인 - 비밀번호");
+      if(!password) return;
+      const res = await fetch(`/auth/login`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok || !data.token){ alert(data.detail || "로그인 실패"); return; }
+      Auth.token = data.token;
+      Auth.username = data.username || username;
+      renderAuthButtons();
+      alert(`${Auth.username}님 로그인되었습니다.`);
+    }
+
+    function logout(){
+      Auth.token = '';
+      Auth.username = '';
+      renderAuthButtons();
+    }
+
+    function renderAuthButtons(){
+      const loginA  = document.querySelector('.login');
+      const signupA = document.querySelector('.sign-up');
+      const profA   = document.querySelector('.profile');
+      if(!loginA || !signupA || !profA) return;
+
+      if(Auth.token){
+        loginA.textContent = `${Auth.username} (로그아웃)`;
+        loginA.onclick = () => logout();
+        signupA.classList.add('hidden');
+        profA.classList.remove('hidden');
+        // 프로필 페이지/모달이 따로 있으면 여기서 이동/오픈 연결
+        profA.onclick = () => location.href = '/profile'; // 필요 시 라우팅 조정
+      }else{
+        loginA.textContent = '로그인';
+        loginA.onclick = () => loginPrompt();
+        signupA.classList.remove('hidden');
+        signupA.onclick = () => signupPrompt();
+        profA.classList.add('hidden');
+      }
+    }
+
+    async function fetchWithAuth(url, opts = {}){
+      const headers = new Headers(opts.headers || {});
+      if(Auth.token) headers.set('Authorization', `Bearer ${Auth.token}`);
+      return fetch(url, { ...opts, headers });
+    }
+
+    // ===== 순위 불러오기 (rank-card > .rank-list 채우기) =====
+    async function loadLeaderboard(){
+      const box = document.querySelector('.rank-card .rank-list');
+      if(!box) return;
+      box.textContent = '불러오는 중...';
+      try{
+        const res = await fetch(`/auth/leaderboard`);
+        const list = await res.json();
+        if(!Array.isArray(list) || !list.length){
+          box.textContent = '아직 기록이 없습니다.';
+          return;
+        }
+        // UI는 기존 CSS에 맡기고, 간단한 줄 구성만 출력
+        box.innerHTML = '';
+        list.forEach((row, i) => {
+          const item = document.createElement('div');
+          item.className = 'rank-item'; // 기존 CSS에 이 클래스 없으면 제거해도 됨
+          item.innerHTML = `#${i+1} <b>${row.username}</b> — 최고점: <b>${row.best_score}</b>점 (총 ${row.count}회)`;
+          box.appendChild(item);
+        });
+      }catch(e){
+        console.error(e);
+        box.textContent = '순위를 불러오지 못했습니다.';
+      }
+    }
+
+    // 초기 실행
+    window.addEventListener('load', () => {
+      renderAuthButtons();
+      loadLeaderboard();
+    });
+  </script>
 </body>
 </html>

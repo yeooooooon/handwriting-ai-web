@@ -17,14 +17,7 @@
     .chip-bad  { background:#fee2e2; }   /* <70  */
     .muted { color:#64748b; font-size:12px; }
 
-    /* 파란 박스 내부 구간 요약 줄
-    .score-lines { line-height:1.6; }
-    .score-lines .line { margin-bottom:4px; }
-    .score-lines .label { display:inline-block; min-width:70px; font-weight:700; }
-    .score-lines .note  { color:#334155; opacity:.9; } */
-
-    /* 파란 박스 내부 구간 요약을 4열 그리드로 정렬
-    [점수범위] [설명] [ : ] [글자목록]  */
+    /* 파란 박스 내부 구간 요약을 4열 그리드로 정렬 */
     .score-lines { display: grid; row-gap: 6px; }
     .score-lines .line {
       display: grid;
@@ -37,6 +30,11 @@
     .score-lines .colon { text-align: center; }
     .score-lines .chars { word-break: keep-all; } /* 글자 목록은 자기 칸에서만 줄바꿈 */
 
+    /* 헤더 우측 액션 영역(로그인/회원가입/홈) */
+    .site-header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .site-header .header-actions { display:flex; align-items:center; gap:12px; }
+    .site-header .header-actions a { font-weight:600; text-decoration:none; color:#0f172a; }
+    .site-header .header-actions a:hover { text-decoration:underline; }
   </style>
   <link rel="shortcut icon" href="/static/image/favicon.ico">
   <link rel="icon" href="/static/image/favicon.ico">
@@ -50,7 +48,12 @@
         <img class="logo-image" src="/static/image/logo2.png" alt="로고">바른 글씨
       </a>
     </h1>
-    <a href="/"><img class="home-image" src="/static/image/home.png" alt="홈"></a>
+    <div class="header-actions">
+      <!-- ▼ 추가: 회원가입/로그인 버튼 (JS가 클릭 핸들러와 라벨을 바인딩) -->
+      <a class="sign-up" href="javascript:void(0)">회원가입</a>
+      <a class="login" href="javascript:void(0)">로그인</a>
+      <a href="/"><img class="home-image" src="/static/image/home.png" alt="홈"></a>
+    </div>
   </header>
 
   <div class="layout-bg">
@@ -146,6 +149,85 @@
     let mode = 'upload';
     let pad = null;
 
+    /* =========================
+       ▼ 인증/로그인 유틸 (파일 기반 세션)
+       ========================= */
+    const Auth = {
+      get token() { return localStorage.getItem('token') || ''; },
+      set token(v) { v ? localStorage.setItem('token', v) : localStorage.removeItem('token'); },
+      get username() { return localStorage.getItem('username') || ''; },
+      set username(v) { v ? localStorage.setItem('username', v) : localStorage.removeItem('username'); }
+    };
+
+    async function signupPrompt() {
+      const username = prompt("회원가입 - 아이디");
+      if (!username) return;
+      const password = prompt("회원가입 - 비밀번호(보안 없음, 데모용)");
+      if (!password) return;
+      const res = await fetch(`/auth/register`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json().catch(()=>({}));
+      if (!res.ok) { alert(data.detail || "회원가입 실패"); return; }
+      alert("회원가입 완료. 로그인 해주세요.");
+    }
+
+    async function loginPrompt() {
+      const username = prompt("로그인 - 아이디");
+      if (!username) return;
+      const password = prompt("로그인 - 비밀번호");
+      if (!password) return;
+      const res = await fetch(`/auth/login`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json().catch(()=>({}));
+      if (!res.ok || !data.token) { alert(data.detail || "로그인 실패"); return; }
+      Auth.token = data.token;
+      Auth.username = data.username || username;
+      renderAuthButtons();
+      alert(`${Auth.username}님 로그인되었습니다.`);
+    }
+
+    function logout() {
+      Auth.token = '';
+      Auth.username = '';
+      renderAuthButtons();
+      alert("로그아웃 되었습니다.");
+    }
+
+    function renderAuthButtons() {
+      const loginA = document.querySelector('header .login');
+      const signupA = document.querySelector('header .sign-up');
+      if (!loginA || !signupA) return;
+
+      if (Auth.token) {
+        loginA.textContent = `${Auth.username} (로그아웃)`;
+        loginA.href = "javascript:void(0)";
+        loginA.onclick = () => logout();
+        signupA.style.display = 'none';
+      } else {
+        loginA.textContent = "로그인";
+        loginA.href = "javascript:void(0)";
+        loginA.onclick = () => loginPrompt();
+        signupA.textContent = "회원가입";
+        signupA.href = "javascript:void(0)";
+        signupA.onclick = () => signupPrompt();
+        signupA.style.display = '';
+      }
+    }
+
+    // 인증 포함 fetch 래퍼
+    async function fetchWithAuth(url, opts = {}) {
+      const headers = new Headers(opts.headers || {});
+      if (Auth.token) headers.set('Authorization', `Bearer ${Auth.token}`);
+      return fetch(url, { ...opts, headers });
+    }
+
+    /* =========================
+       ▼ 업로드/패드/렌더 유틸
+       ========================= */
     function previewImage() {
       const input = document.createElement("input");
       input.type = "file";
@@ -277,7 +359,7 @@
           ctx.lineWidth=w; const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.quadraticCurveTo(a.x,a.y,cx,cy); ctx.stroke(); }
         ctx.restore();
       }
-      _redrawLastSegment(){ const path=this.paths[this.paths.length-1]; if(!path) return; const lastTwo={...path, points:path.points.slice(-2)}; this._drawPath(lastTwo); }
+      _redrawLastSegment(){ const path=this.paths[this.length-1]; if(!path) return; const lastTwo={...path, points:path.points.slice(-2)}; this._drawPath(lastTwo); }
       _drawDot(x,y,p){ const ctx=this.ctx; ctx.save(); ctx.globalCompositeOperation=this.isErasing?'destination-out':'source-over';
         ctx.fillStyle=this.isErasing?'rgba(0,0,0,1)':this.strokeStyle; const r=this._strokeWidth(this.baseSize,p)/2;
         ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.restore(); }
@@ -344,7 +426,8 @@
         const formData = new FormData();
         formData.append("file", fileToSend);
 
-        const res = await fetch(`${API_BASE}/api/gpt/evaluate`, { method: "POST", body: formData });
+        // ▼ 변경: 인증 토큰을 자동으로 포함
+        const res = await fetchWithAuth(`${API_BASE}/api/gpt/evaluate`, { method: "POST", body: formData });
         const result = await res.json();
         if (!res.ok) { alert("분석 실패: " + (result.detail || res.status)); return; }
 
@@ -409,7 +492,12 @@
       document.getElementById('clearBtn').addEventListener('click', ()=> pad.clear());
     }
 
-    window.onload = () => { initTabs(); initPad(); };
+    // 초기화
+    window.onload = () => {
+      renderAuthButtons();   // ← 로그인 버튼 상태 반영
+      initTabs();
+      initPad();
+    };
   </script>
 </body>
 </html>

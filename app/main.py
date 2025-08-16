@@ -11,6 +11,7 @@ from app.handwriting_feedback_api import router as handwriting_router
 from app.daily_challenge_api import router as challenge_router
 #from app.paddleOCR_api import router as evaluate_router
 from app.routers.gpt_handwriting_feedback_api import router as gpt_handwriting_router
+from app.routers.auth_fs import router as auth_router
 
 BASE_DIR = Path(__file__).resolve().parent  # main.py가 있는 폴더.
 
@@ -19,6 +20,7 @@ app.include_router(handwriting_router)
 app.include_router(challenge_router)
 # app.include_router(evaluate_router)
 app.include_router(gpt_handwriting_router, prefix="/api/gpt", tags=["gpt-handwriting"])
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
 sentences = [
     "저 넓은 세상에서 큰 꿈을 펼쳐라",

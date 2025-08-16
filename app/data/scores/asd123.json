@@ -1,0 +1,138 @@
+[
+  {
+    "ts": "2025-08-16T04:24:23.157273Z",
+    "endpoint": "/api/gpt/evaluate",
+    "engine": "gpt-4o-mini",
+    "score": 88.5,
+    "recognized_text": "한글은 아름다운 문자입니다",
+    "chars": [
+      {
+        "char": "한",
+        "score": 85
+      },
+      {
+        "char": "글",
+        "score": 90
+      },
+      {
+        "char": "은",
+        "score": 80
+      },
+      {
+        "char": " ",
+        "score": 100
+      },
+      {
+        "char": "아",
+        "score": 88
+      },
+      {
+        "char": "름",
+        "score": 92
+      },
+      {
+        "char": "다",
+        "score": 87
+      },
+      {
+        "char": "운",
+        "score": 85
+      },
+      {
+        "char": " ",
+        "score": 100
+      },
+      {
+        "char": "문",
+        "score": 90
+      },
+      {
+        "char": "자",
+        "score": 89
+      },
+      {
+        "char": "입",
+        "score": 91
+      },
+      {
+        "char": "니",
+        "score": 93
+      },
+      {
+        "char": "다",
+        "score": 86
+      }
+    ]
+  },
+  {
+    "ts": "2025-08-16T04:30:05.060890Z",
+    "endpoint": "/api/gpt/evaluate",
+    "engine": "gpt-4o-mini",
+    "score": 87.5,
+    "recognized_text": "한글은 아름다운 문자입니다",
+    "chars": [
+      {
+        "char": "한",
+        "score": 90
+      },
+      {
+        "char": "글",
+        "score": 85
+      },
+      {
+        "char": "은",
+        "score": 80
+      },
+      {
+        "char": " ",
+        "score": 100
+      },
+      {
+        "char": "아",
+        "score": 95
+      },
+      {
+        "char": "름",
+        "score": 90
+      },
+      {
+        "char": "다",
+        "score": 85
+      },
+      {
+        "char": "운",
+        "score": 80
+      },
+      {
+        "char": " ",
+        "score": 100
+      },
+      {
+        "char": "문",
+        "score": 90
+      },
+      {
+        "char": "자",
+        "score": 85
+      },
+      {
+        "char": "입",
+        "score": 80
+      },
+      {
+        "char": "니",
+        "score": 90
+      },
+      {
+        "char": "다",
+        "score": 85
+      }
+    ]
+  },
+  {
+    "ts": 1755320302,
+    "score": 88.5,
+    "source": "gpt",
+    "text": "한글은 아름다운 문자입니다"
+  }
+]
