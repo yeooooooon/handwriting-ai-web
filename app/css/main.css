@@ -1,19 +1,20 @@
-/* 기본 스타일 리셋 및 뷰포트 설정 */
-body, html {
-  margin: 0; 
-  padding: 0;  
+html, body {
+  margin: 0;
+  padding: 0;
   width: 100%;
   height: auto;
   min-height: 100dvh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   font-family: 'Pretendard', 'sans-serif';
   background: linear-gradient(180deg, #d6e1fa, #f8fafb);
 }
 
-/* 바디를 세로 플렉스 컨테이너로 */
+/* 세로 레이아웃 + 위쪽 정렬 */
 body {
   display: flex;
   flex-direction: column;
+  min-height: 100dvh;
 }
 
 .site-header {
@@ -36,28 +37,43 @@ body {
   margin-right: 30px;
 }
 
-/* 전체 배경 색상 및 최소 크기 설정 */
+/* 배경 래퍼: 컨텐츠를 '위'로 붙이기 */
 .layout-bg {
   min-height: 100%;
   min-width: 100%;
-  flex: 1 0 auto;       /* 내용이 부족해도 푸터를 아래로 민다 */
+  flex: 1 0 auto;
+  display: flex;                /* 추가 */
+  justify-content: center;      /* 가운데 정렬 */
+  align-items: flex-start;      /* 위쪽 정렬 */
+  padding-top: 100px;            /* 살짝만 내림 */
 }
 
-/* 메인 컨테이너 중앙 정렬 및 패딩 */
+/* 메인 폭/패딩 */
 .main-wrap {
+  width: 100%;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 50px 0 50px 0;
-  padding-top: 0px;        /* 더 위로 올리고 싶으면 값 ↑ */
+  padding: 0 16px 50px 16px;     /* 상단 0, 좌우 16 */
 }
 
+/* 버튼/랭크 감싸는 영역 */
 .cards-container {
   display: flex;
   flex-direction: row;
-  justify-content: center;             /* 좌우 중앙 정렬 */
-  align-items: center;
-  margin-top: 200px;
+  justify-content: center;
+  align-items: flex-start;       /* 위쪽 기준 */
+  gap: 48px;                     /* 요소 간 간격 */
+  margin-top: 0;                 /* ↓ 200px 제거 */
 }
+
+/* 순위 카드: 좌표 고정 제거 */
+.rank-card{
+  width: 300px;
+  height: 400px;
+  padding: 30px;
+  border-radius: 10px;
+}
+
 
 .menu{
   display: flex;
