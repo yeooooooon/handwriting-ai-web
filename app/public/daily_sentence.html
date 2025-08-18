@@ -395,18 +395,25 @@
         // --- "오늘의 문장" 일치 검증 (공백 제거 후 비교) ---
         const cleanText = (result.recognized_text || '').trim().replace(/\s/g, "");
         const targetClean = (todaySentence || '').trim().replace(/\s/g, "");
+
         if (cleanText !== targetClean) {
+          /* ⭐ 변경: 불일치 시에도 인식 결과는 표시하고, 점수/피드백은 감춤(초기화) */
+          document.getElementById("corrected-text").textContent =
+            result.recognized_text || result.corrected_text || '';
+
+          // 점수/피드백 영역 초기화 (표시 안 함)
           document.getElementById("score-result").textContent = '-';
           document.getElementById("feedback-text").textContent = '분석 후 결과가 여기에 표시됩니다.';
           document.getElementById("char-scores").innerHTML = '';
-          document.getElementById("corrected-text").textContent = '';
           document.getElementById("error-list").textContent = '';
 
-          errorMsg.textContent = "문장이 일치하지 않습니다. 다시 작성해주세요.";
+          // 안내 문구
+          errorMsg.textContent = "문장이 일치하지 않습니다. 아래 '인식된 글자'를 확인하고 다시 작성해주세요.";
           errorMsg.classList.remove("hidden");
-          return;
+          return; // 채점 로직 종료
         }
 
+        // === 문장 일치 시 정상 렌더링 ===
         // 인식 문장
         document.getElementById("corrected-text").textContent = result.corrected_text || result.recognized_text || '';
 
