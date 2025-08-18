@@ -271,6 +271,7 @@
       });
     })();
 
+    // ===== 캔버스 패드 =====
     class HandwritingPad {
       constructor(canvas) {
         this.canvas = canvas;
@@ -281,36 +282,56 @@
         this.isErasing = false;
         this.paths = [];
         this.currentPath = null;
+
         this.resize();
         window.addEventListener('resize', () => this.resize());
         this._bindPointerEvents();
         this._drawGrid();
       }
-      setStrokeStyle(color){ this.strokeStyle=color; }
-      setBaseSize(px){ this.baseSize=px; }
-      setUsePressure(on){ this.usePressure=on; }
-      toggleEraser(){ this.isErasing=!this.isErasing; return this.isErasing; }
+      setStrokeStyle(color){ this.strokeStyle = color; }
+      setBaseSize(px){ this.baseSize = px; }
+      setUsePressure(on){ this.usePressure = on; }
+      toggleEraser(){ this.isErasing = !this.isErasing; return this.isErasing; }
+
       clear(){
         const rect=this.canvas.getBoundingClientRect();
-        this.ctx.save(); this.ctx.globalCompositeOperation='source-over';
-        this.ctx.fillStyle='#ffffff'; this.ctx.fillRect(0,0,rect.width,rect.height);
-        this.ctx.restore(); this._drawGrid(); this.paths=[];
+        this.ctx.save();
+        this.ctx.globalCompositeOperation='source-over';
+        this.ctx.fillStyle='#ffffff';
+        this.ctx.fillRect(0,0,rect.width,rect.height);
+        this.ctx.restore();
+        this._drawGrid();
+        this.paths=[];
       }
       undo(){ if(!this.paths.length) return; this.paths.pop(); this._redrawAll(); }
+
       async toBlobWhiteBg(){
         const rect=this.canvas.getBoundingClientRect();
         const dpr=window.devicePixelRatio||1;
-        const off=document.createElement('canvas'); off.width=Math.round(rect.width*dpr); off.height=Math.round(rect.height*dpr);
-        const octx=off.getContext('2d'); octx.scale(dpr,dpr); octx.fillStyle='#ffffff'; octx.fillRect(0,0,rect.width,rect.height); octx.drawImage(this.canvas,0,0);
+        const off=document.createElement('canvas');
+        off.width=Math.round(rect.width*dpr);
+        off.height=Math.round(rect.height*dpr);
+        const octx=off.getContext('2d');
+        octx.scale(dpr,dpr);
+        octx.fillStyle='#ffffff';
+        octx.fillRect(0,0,rect.width,rect.height);
+        octx.drawImage(this.canvas,0,0);
         return await new Promise(r=>off.toBlob(r,'image/png',1.0));
       }
+
       resize(){
-        const rect=this.canvas.getBoundingClientRect(); if(!rect.width||!rect.height) return;
-        const dpr=window.devicePixelRatio||1; this.canvas.width=Math.round(rect.width*dpr); this.canvas.height=Math.round(rect.height*dpr);
+        const rect=this.canvas.getBoundingClientRect();
+        if(!rect.width||!rect.height) return;
+        const dpr=window.devicePixelRatio||1;
+        this.canvas.width=Math.round(rect.width*dpr);
+        this.canvas.height=Math.round(rect.height*dpr);
         this.ctx.setTransform(dpr,0,0,dpr,0,0);
-        this.ctx.fillStyle='#ffffff'; this.ctx.fillRect(0,0,rect.width,rect.height);
-        this._drawGrid(); this._redrawAll();
+        this.ctx.fillStyle='#ffffff';
+        this.ctx.fillRect(0,0,rect.width,rect.height);
+        this._drawGrid();
+        this._redrawAll();
       }
+
       _drawGrid(){
         const rect=this.canvas.getBoundingClientRect(), ctx=this.ctx;
         ctx.save(); ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1;
@@ -321,6 +342,7 @@
         ctx.moveTo(margin, mid+40); ctx.lineTo(rect.width-margin, mid+40);
         ctx.stroke(); ctx.restore();
       }
+
       _bindPointerEvents(){
         const c=this.canvas;
         const onDown=(e)=>{ e.preventDefault(); c.setPointerCapture(e.pointerId);
@@ -335,6 +357,7 @@
         c.addEventListener('touchstart', e=>e.preventDefault(), {passive:false});
         c.addEventListener('touchmove',  e=>e.preventDefault(), {passive:false});
       }
+
       _addPoint(e, draw=false){
         const rect=this.canvas.getBoundingClientRect();
         const x=e.clientX-rect.left, y=e.clientY-rect.top;
@@ -359,7 +382,7 @@
           ctx.lineWidth=w; const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.quadraticCurveTo(a.x,a.y,cx,cy); ctx.stroke(); }
         ctx.restore();
       }
-      _redrawLastSegment(){ const path=this.paths[this.length-1]; if(!path) return; const lastTwo={...path, points:path.points.slice(-2)}; this._drawPath(lastTwo); }
+      _redrawLastSegment(){ const path=this.paths[this.paths.length-1]; if(!path) return; const lastTwo={...path, points:path.points.slice(-2)}; this._drawPath(lastTwo); }
       _drawDot(x,y,p){ const ctx=this.ctx; ctx.save(); ctx.globalCompositeOperation=this.isErasing?'destination-out':'source-over';
         ctx.fillStyle=this.isErasing?'rgba(0,0,0,1)':this.strokeStyle; const r=this._strokeWidth(this.baseSize,p)/2;
         ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.restore(); }
@@ -458,6 +481,7 @@
       }
     }
 
+    // ===== 탭 =====
     function initTabs(){
       const tabUpload=document.getElementById('tab-upload');
       const tabDraw=document.getElementById('tab-draw');
@@ -476,6 +500,7 @@
       activate('upload');
     }
 
+    // ===== 패드 초기화 =====
     function initPad(){
       const canvas=document.getElementById('pad');
       pad=new HandwritingPad(canvas);

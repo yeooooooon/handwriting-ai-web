@@ -2,11 +2,43 @@
   "items": [
     {
       "username": "asd123",
+      "score": 68,
+      "hits": 3,
+      "miss": 15,
+      "duration_ms": 60000,
+      "at": 1755493625
+    },
+    {
+      "username": "asd123",
       "score": 49,
       "hits": 2,
       "miss": 16,
       "duration_ms": 60000,
       "at": 1755486673
+    },
+    {
+      "username": "kim",
+      "score": 46,
+      "hits": 2,
+      "miss": 16,
+      "duration_ms": 60000,
+      "at": 1755487611
+    },
+    {
+      "username": "asd123",
+      "score": 24,
+      "hits": 1,
+      "miss": 17,
+      "duration_ms": 60000,
+      "at": 1755493558
+    },
+    {
+      "username": "kim",
+      "score": 23,
+      "hits": 1,
+      "miss": 18,
+      "duration_ms": 60000,
+      "at": 1755487807
     },
     {
       "username": "asd123",
@@ -15,6 +47,14 @@
       "miss": 18,
       "duration_ms": 60000,
       "at": 1755486802
+    },
+    {
+      "username": "kim",
+      "score": 0,
+      "hits": 0,
+      "miss": 18,
+      "duration_ms": 60000,
+      "at": 1755487538
     },
     {
       "username": "asd123",
