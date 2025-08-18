@@ -264,7 +264,7 @@ async function loadLeaderboard() {
     list.forEach((row, i) => {
       const item = document.createElement('div');
       item.className = 'rank-item';
-      item.innerHTML = `#${i+1} <b>${row.username}</b> — 최고점: <b>${row.best_score}</b>점 (총 ${row.count}회)`;
+      item.innerHTML = `${i+1}. <b>${row.username}</b> - 최고점: ${row.best_score}점`;
       box.appendChild(item);
     });
   } catch (e) {

@@ -374,7 +374,7 @@ body, html {
   margin-top: 20px;
   min-height: 180px;
   position: relative;}
-.pad-canvas { width:100%; height:320px; display:block; background:#ffffff; border-radius:10px; touch-action:none; }
+.pad-canvas { width:100%; height:250px; display:block; background:#ffffff; border-radius:10px; touch-action:none; }
 .btn.slate { background:#64748b; color:#fff; }
 .btn.red   { background:#ef4444; color:#fff; }
 .btn.gray2 { background:#0f172a; color:#fff; }
