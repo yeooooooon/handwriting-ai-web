@@ -34,12 +34,43 @@
           </div>
         </div>
 
-        <!-- 그대로 유지: 순위 카드 -->
+        <!-- 순위 카드 -->
         <div class="rank-card">
           <div class="card-title">순위</div>
           <div class="rank-list"></div>
         </div>
       </div>
+      <!-- Auth Modal -->
+<div id="authModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="modal-backdrop" data-close="1"></div>
+
+  <div class="modal-panel" role="document">
+    <button class="modal-close" aria-label="닫기" data-close="1">✕</button>
+
+    <h2 class="modal-title">로그인</h2>
+
+    <form id="authForm">
+      <label class="field">
+        <span>아이디</span>
+        <input id="auth-username" name="username" type="text" autocomplete="username" required />
+      </label>
+
+      <label class="field">
+        <span>비밀번호</span>
+        <input id="auth-password" name="password" type="password" autocomplete="current-password" required />
+      </label>
+
+      <button id="authSubmit" type="submit" class="primary">로그인</button>
+
+      <div id="switcherRow" class="switcher-row">
+        <span class="muted">아직 계정이 없나요?</span>
+        <a href="javascript:void(0)" id="toSignupLink">회원가입</a>
+      </div>
+
+      <p id="authError" class="error" role="alert" aria-live="polite"></p>
+    </form>
+  </div>
+</div>
     </div>
   </div>
 
@@ -49,115 +80,205 @@
   </footer>
 
   <script>
-    // ===== 기본 설정 =====
-    const API_BASE = `${location.protocol}//${location.hostname}:8000`;
+     // ===== 기본 설정 =====
+  const API_BASE = `${location.protocol}//${location.hostname}:8000`;
 
-    // ===== 인증 유틸 (로컬스토리지 기반) =====
-    const Auth = {
-      get token()    { return localStorage.getItem('token') || ''; },
-      set token(v)   { v ? localStorage.setItem('token', v) : localStorage.removeItem('token'); },
-      get username() { return localStorage.getItem('username') || ''; },
-      set username(v){ v ? localStorage.setItem('username', v) : localStorage.removeItem('username'); },
-    };
+// ===== 인증 유틸 =====
+const Auth = {
+  get token()    { return localStorage.getItem('token') || ''; },
+  set token(v)   { v ? localStorage.setItem('token', v) : localStorage.removeItem('token'); },
+  get username() { return localStorage.getItem('username') || ''; },
+  set username(v){ v ? localStorage.setItem('username', v) : localStorage.removeItem('username'); },
+};
 
-    async function signupPrompt(){
-      const username = prompt("회원가입 - 아이디");
-      if(!username) return;
-      const password = prompt("회원가입 - 비밀번호(데모)");
-      if(!password) return;
-      const res = await fetch(`/auth/register`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json().catch(()=>({}));
-      if(!res.ok){ alert(data.detail || "회원가입 실패"); return; }
-      alert("회원가입 완료! 로그인 해주세요.");
+// ===== 모달 요소 =====
+const modalEl   = document.getElementById('authModal');
+const titleEl   = modalEl.querySelector('.modal-title');
+const formEl    = document.getElementById('authForm');
+const userEl    = document.getElementById('auth-username');
+const passEl    = document.getElementById('auth-password');
+const submitEl  = document.getElementById('authSubmit');
+const errorEl   = document.getElementById('authError');
+const switcherRow = document.getElementById('switcherRow'); // 하단 안내/링크 영역
+
+let mode = 'login'; // 'login' | 'signup'
+
+// ===== 모드 전환 =====
+function setMode(next) {
+  mode = next;
+
+  if (mode === 'login') {
+    titleEl.textContent = '로그인';
+    submitEl.textContent = '로그인';
+    passEl.autocomplete = 'current-password';
+
+    // 하단: 아직 계정이 없나요?  |  회원가입
+    if (switcherRow) {
+      switcherRow.style.display = 'flex';
+      switcherRow.innerHTML =
+        '<span class="muted">아직 계정이 없나요?</span>' +
+        '<a href="javascript:void(0)" id="toSignupLink">회원가입</a>';
     }
+  } else {
+    titleEl.textContent = '회원가입';
+    submitEl.textContent = '회원가입';
+    passEl.autocomplete = 'new-password';
 
-    async function loginPrompt(){
-      const username = prompt("로그인 - 아이디");
-      if(!username) return;
-      const password = prompt("로그인 - 비밀번호");
-      if(!password) return;
-      const res = await fetch(`/auth/login`, {
+    // 하단: 이미 계정이 있나요?  |  로그인
+    if (switcherRow) {
+      switcherRow.style.display = 'flex';
+      switcherRow.innerHTML =
+        '<span class="muted">이미 계정이 있나요?</span>' +
+        '<a href="javascript:void(0)" id="toLoginLink">로그인</a>';
+    }
+  }
+
+  errorEl.textContent = '';
+  setTimeout(() => userEl.focus(), 0);
+}
+
+function openAuth(nextMode = 'login', presetUsername = '') {
+  setMode(nextMode);
+  modalEl.classList.remove('hidden');
+  modalEl.setAttribute('aria-hidden','false');
+  document.body.style.overflow = 'hidden';
+  userEl.value = presetUsername || '';
+  passEl.value = '';
+  errorEl.textContent = '';
+}
+
+function closeAuth() {
+  modalEl.classList.add('hidden');
+  modalEl.setAttribute('aria-hidden','true');
+  document.body.style.overflow = '';
+}
+
+// 모달 닫기 (배경/버튼/ESC)
+modalEl.addEventListener('click', (e) => {
+  if (e.target.dataset.close === '1') closeAuth();
+});
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !modalEl.classList.contains('hidden')) closeAuth();
+});
+
+// ===== 폼 제출 =====
+formEl.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  submitEl.disabled = true;
+  errorEl.textContent = '';
+
+  const username = userEl.value.trim();
+  const password = passEl.value.trim();
+  if (!username || !password) {
+    errorEl.textContent = '아이디와 비밀번호를 입력해 주세요.';
+    submitEl.disabled = false;
+    return;
+  }
+
+  try {
+    if (mode === 'signup') {
+      const r = await fetch(`/auth/register`, {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ username, password })
       });
-      const data = await res.json().catch(()=>({}));
-      if(!res.ok || !data.token){ alert(data.detail || "로그인 실패"); return; }
-      Auth.token = data.token;
-      Auth.username = data.username || username;
+      const d = await r.json().catch(()=>({}));
+      if (!r.ok) throw new Error(d.detail || '회원가입 실패');
+
+      // 회원가입 성공 → 로그인 모드 전환
+      setMode('login');
+      userEl.value = username;
+      passEl.value = '';
+      alert('회원가입이 완료되었습니다. 로그인해 주세요.');
+    } else {
+      const r = await fetch(`/auth/login`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      const d = await r.json().catch(()=>({}));
+      if (!r.ok || !d.token) throw new Error(d.detail || '로그인 실패');
+
+      Auth.token = d.token;
+      Auth.username = d.username || username;
       renderAuthButtons();
+      closeAuth();
       alert(`${Auth.username}님 로그인되었습니다.`);
     }
+  } catch (err) {
+    errorEl.textContent = err.message || '처리 중 오류가 발생했습니다.';
+  } finally {
+    submitEl.disabled = false;
+  }
+});
 
-    function logout(){
-      Auth.token = '';
-      Auth.username = '';
-      renderAuthButtons();
+// ===== 하단 링크 클릭(이벤트 위임) =====
+switcherRow?.addEventListener('click', (e) => {
+  if (e.target.id === 'toSignupLink') setMode('signup');
+  if (e.target.id === 'toLoginLink')  setMode('login');
+});
+
+// ===== 헤더 버튼 상태/동작 =====
+function renderAuthButtons() {
+  const loginA  = document.querySelector('.login');
+  const signupA = document.querySelector('.sign-up');
+  const profA   = document.querySelector('.profile');
+  if (!loginA || !signupA || !profA) return;
+
+  if (Auth.token) {
+    loginA.textContent = `${Auth.username} (로그아웃)`;
+    loginA.onclick = () => { Auth.token=''; Auth.username=''; renderAuthButtons(); };
+    signupA.classList.add('hidden');
+    profA.classList.remove('hidden');
+    profA.onclick = () => location.href = '/profile';
+  } else {
+    loginA.textContent = '로그인';
+    loginA.onclick = () => openAuth('login');
+    signupA.textContent = '회원가입';
+    signupA.classList.remove('hidden');
+    signupA.onclick = () => openAuth('signup');
+    profA.classList.add('hidden');
+  }
+}
+
+// ===== 인증 요청 헬퍼 =====
+async function fetchWithAuth(url, opts = {}) {
+  const headers = new Headers(opts.headers || {});
+  if (Auth.token) headers.set('Authorization', `Bearer ${Auth.token}`);
+  return fetch(url, { ...opts, headers });
+}
+
+// ===== 순위 불러오기 =====
+async function loadLeaderboard() {
+  const box = document.querySelector('.rank-card .rank-list');
+  if (!box) return;
+  box.textContent = '불러오는 중...';
+  try {
+    const res = await fetch(`/auth/leaderboard`);
+    const list = await res.json();
+    if (!Array.isArray(list) || !list.length) {
+      box.textContent = '아직 기록이 없습니다.';
+      return;
     }
-
-    function renderAuthButtons(){
-      const loginA  = document.querySelector('.login');
-      const signupA = document.querySelector('.sign-up');
-      const profA   = document.querySelector('.profile');
-      if(!loginA || !signupA || !profA) return;
-
-      if(Auth.token){
-        loginA.textContent = `${Auth.username} (로그아웃)`;
-        loginA.onclick = () => logout();
-        signupA.classList.add('hidden');
-        profA.classList.remove('hidden');
-        // 프로필 페이지/모달이 따로 있으면 여기서 이동/오픈 연결
-        profA.onclick = () => location.href = '/profile'; // 필요 시 라우팅 조정
-      }else{
-        loginA.textContent = '로그인';
-        loginA.onclick = () => loginPrompt();
-        signupA.classList.remove('hidden');
-        signupA.onclick = () => signupPrompt();
-        profA.classList.add('hidden');
-      }
-    }
-
-    async function fetchWithAuth(url, opts = {}){
-      const headers = new Headers(opts.headers || {});
-      if(Auth.token) headers.set('Authorization', `Bearer ${Auth.token}`);
-      return fetch(url, { ...opts, headers });
-    }
-
-    // ===== 순위 불러오기 (rank-card > .rank-list 채우기) =====
-    async function loadLeaderboard(){
-      const box = document.querySelector('.rank-card .rank-list');
-      if(!box) return;
-      box.textContent = '불러오는 중...';
-      try{
-        const res = await fetch(`/auth/leaderboard`);
-        const list = await res.json();
-        if(!Array.isArray(list) || !list.length){
-          box.textContent = '아직 기록이 없습니다.';
-          return;
-        }
-        // UI는 기존 CSS에 맡기고, 간단한 줄 구성만 출력
-        box.innerHTML = '';
-        list.forEach((row, i) => {
-          const item = document.createElement('div');
-          item.className = 'rank-item'; // 기존 CSS에 이 클래스 없으면 제거해도 됨
-          item.innerHTML = `#${i+1} <b>${row.username}</b> — 최고점: <b>${row.best_score}</b>점 (총 ${row.count}회)`;
-          box.appendChild(item);
-        });
-      }catch(e){
-        console.error(e);
-        box.textContent = '순위를 불러오지 못했습니다.';
-      }
-    }
-
-    // 초기 실행
-    window.addEventListener('load', () => {
-      renderAuthButtons();
-      loadLeaderboard();
+    box.innerHTML = '';
+    list.forEach((row, i) => {
+      const item = document.createElement('div');
+      item.className = 'rank-item';
+      item.innerHTML = `#${i+1} <b>${row.username}</b> — 최고점: <b>${row.best_score}</b>점 (총 ${row.count}회)`;
+      box.appendChild(item);
     });
+  } catch (e) {
+    console.error(e);
+    box.textContent = '순위를 불러오지 못했습니다.';
+  }
+}
+
+// 초기 실행
+window.addEventListener('load', () => {
+  renderAuthButtons();
+  loadLeaderboard();
+});
   </script>
+  
 </body>
 </html>

@@ -29,6 +29,12 @@
     .score-lines .note { color:#334155; opacity:.9; white-space:nowrap; }
     .score-lines .colon { text-align:center; }
     .score-lines .chars { word-break:keep-all; }
+
+    /* 헤더 우측 액션 영역(로그인/회원가입/홈) */
+    .site-header { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+    .site-header .header-actions { display:flex; align-items:center; gap:12px; }
+    .site-header .header-actions a { font-weight:600; text-decoration:none; color:#0f172a; }
+    .site-header .header-actions a:hover { text-decoration:underline; }
   </style>
   <link rel="shortcut icon" href="/static/image/favicon.ico">
   <link rel="icon" href="/static/image/favicon.ico">
@@ -44,7 +50,12 @@
         <img class="logo-image" src="/static/image/logo2.png" alt="로고">바른 글씨 - 오늘의 손글씨
       </a>
     </h1>
-    <a href="/"><img class="home-image" src="/static/image/home.png" alt="홈"></a>
+    <div class="header-actions">
+      <!-- ▼ 추가: 회원가입/로그인 버튼 (JS가 클릭 핸들러와 라벨을 바인딩) -->
+      <a class="sign-up" href="javascript:void(0)">회원가입</a>
+      <a class="login" href="javascript:void(0)">로그인</a>
+      <a href="/"><img class="home-image" src="/static/image/home.png" alt="홈"></a>
+    </div>
   </header>
 
   <div class="layout-bg">
@@ -205,6 +216,82 @@
         reader.readAsDataURL(file);
       });
     })();
+
+    /* =========================
+       ▼ 인증/로그인 유틸 (파일 기반 세션)
+       ========================= */
+       const Auth = {
+      get token() { return localStorage.getItem('token') || ''; },
+      set token(v) { v ? localStorage.setItem('token', v) : localStorage.removeItem('token'); },
+      get username() { return localStorage.getItem('username') || ''; },
+      set username(v) { v ? localStorage.setItem('username', v) : localStorage.removeItem('username'); }
+    };
+
+    async function signupPrompt() {
+      const username = prompt("회원가입 - 아이디");
+      if (!username) return;
+      const password = prompt("회원가입 - 비밀번호(보안 없음, 데모용)");
+      if (!password) return;
+      const res = await fetch(`/auth/register`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json().catch(()=>({}));
+      if (!res.ok) { alert(data.detail || "회원가입 실패"); return; }
+      alert("회원가입 완료. 로그인 해주세요.");
+    }
+
+    async function loginPrompt() {
+      const username = prompt("로그인 - 아이디");
+      if (!username) return;
+      const password = prompt("로그인 - 비밀번호");
+      if (!password) return;
+      const res = await fetch(`/auth/login`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json().catch(()=>({}));
+      if (!res.ok || !data.token) { alert(data.detail || "로그인 실패"); return; }
+      Auth.token = data.token;
+      Auth.username = data.username || username;
+      renderAuthButtons();
+      alert(`${Auth.username}님 로그인되었습니다.`);
+    }
+
+    function logout() {
+      Auth.token = '';
+      Auth.username = '';
+      renderAuthButtons();
+      alert("로그아웃 되었습니다.");
+    }
+
+    function renderAuthButtons() {
+      const loginA = document.querySelector('header .login');
+      const signupA = document.querySelector('header .sign-up');
+      if (!loginA || !signupA) return;
+
+      if (Auth.token) {
+        loginA.textContent = `${Auth.username} (로그아웃)`;
+        loginA.href = "javascript:void(0)";
+        loginA.onclick = () => logout();
+        signupA.style.display = 'none';
+      } else {
+        loginA.textContent = "로그인";
+        loginA.href = "javascript:void(0)";
+        loginA.onclick = () => loginPrompt();
+        signupA.textContent = "회원가입";
+        signupA.href = "javascript:void(0)";
+        signupA.onclick = () => signupPrompt();
+        signupA.style.display = '';
+      }
+    }
+
+    // 인증 포함 fetch 래퍼
+    async function fetchWithAuth(url, opts = {}) {
+      const headers = new Headers(opts.headers || {});
+      if (Auth.token) headers.set('Authorization', `Bearer ${Auth.token}`);
+      return fetch(url, { ...opts, headers });
+    }
 
     // ===== 캔버스 패드 =====
     class HandwritingPad {
@@ -483,6 +570,7 @@
     // ===== onload =====
     window.onload = () => {
       loadDailySentence();
+      renderAuthButtons();   // ← 로그인 버튼 상태 반영
       initTabs();
       initPad();
     };

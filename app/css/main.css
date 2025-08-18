@@ -25,17 +25,20 @@ body {
   box-sizing: border-box;
   justify-content: flex-end;
   align-items: center;
+  gap: 14px;               /* ← 여기만 있으면 '내 점수' 와 'kim (로그아웃)' 사이 간격 확보 */
+  padding: 8px 16px;
+  color: black;
 }
 
-/* 로그인 */
-.login{
-  margin-right: 30px;
-}
+/* 필요하면 기존 margin-right 제거 */
+.site-header .login,
+.site-header .sign-up { margin-right: 0; }
 
-/* 회원가입 */
-.sign-up{
-  margin-right: 30px;
+/* 링크 기본 스타일 살짝 다듬기 (선택) */
+.site-header a{
+  font-weight:600; text-decoration:none; color:#0f172a;
 }
+.site-header a:hover{ text-decoration:underline; }
 
 /* 배경 래퍼: 컨텐츠를 '위'로 붙이기 */
 .layout-bg {
@@ -63,7 +66,6 @@ body {
   justify-content: center;
   align-items: flex-start;       /* 위쪽 기준 */
   gap: 48px;                     /* 요소 간 간격 */
-  margin-top: 0;                 /* ↓ 200px 제거 */
 }
 
 /* 순위 카드: 좌표 고정 제거 */
@@ -149,6 +151,52 @@ body {
   border-radius: 10px;
 }
 
+/* ========== Modal base ========== */
+.modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal.hidden { display: none; }
+.modal-backdrop { position: absolute; inset: 0; background: #0006; backdrop-filter: blur(2px); }
+
+.modal-panel {
+  position: relative;
+  width: min(92vw, 420px);
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  padding: 24px 22px 20px;
+  z-index: 1;
+}
+
+.modal-title { margin: 4px 0 14px; font-size: 22px; font-weight: 700; color: #1f2937; }
+.modal-close {
+  position: absolute; top: 10px; right: 10px;
+  width: 32px; height: 32px; border: 0; border-radius: 8px; background: #f1f5f9; cursor: pointer;
+}
+
+/* ========== Form fields ========== */
+.field { display: grid; gap: 6px; margin: 10px 0 14px; }
+.field > span { font-size: 13px; color: #334155; }
+.field > input {
+  height: 42px; border: 1px solid #cbd5e1; border-radius: 10px; padding: 0 12px;
+  font-size: 15px; outline: none;
+}
+.field > input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+
+.primary {
+  width: 100%; height: 44px; border: 0; border-radius: 10px; cursor: pointer;
+  background: #2563eb; color: #fff; font-weight: 700; font-size: 15px;
+}
+.primary:disabled { opacity: .6; cursor: not-allowed; }
+
+.switcher-row{
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:12px; font-size:13px;
+}
+.switcher-row .muted{ color:#64748b; }
+.switcher-row a{ color:#2563eb; text-decoration:underline; }
+
+
+.error { margin-top: 10px; color: #ef4444; font-size: 13px; min-height: 1em; }
+
 
 /* footer */
 .footer-copyright {
@@ -181,7 +229,8 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 16px;
-    margin-top: 32px;         /* 100px → 축소 */
+    /* margin-top: 32px; */
+    margin-top: 0;                 /* ↓ 200px 제거 */
   }
 
   .menu {
