@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "username": "asd123",
+      "score": 49,
+      "hits": 2,
+      "miss": 16,
+      "duration_ms": 60000,
+      "at": 1755486673
+    },
+    {
+      "username": "asd123",
+      "score": 23,
+      "hits": 1,
+      "miss": 18,
+      "duration_ms": 60000,
+      "at": 1755486802
+    },
+    {
+      "username": "asd123",
+      "score": 0,
+      "hits": 0,
+      "miss": 8,
+      "duration_ms": 60000,
+      "at": 1755486296
+    }
+  ]
+}

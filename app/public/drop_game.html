@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>바른 글씨 - 속필 드롭 게임</title>
+
+  <!-- 기존 디자인과 동일한 스타일 참조 -->
+  <link rel="stylesheet" href="/static/globals.css?v=333">
+  <link rel="stylesheet" href="/static/styleguide.css?v=333">
+  <link rel="stylesheet" href="/static/style.css?v=334">
+
+  <style>
+    .hidden { display:none; }
+
+    /* 상단 상태바 */
+    .status-bar {
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      padding:10px 14px; background:#eef2ff; border-radius:12px; margin-bottom:12px;
+    }
+    .pill { padding:6px 10px; background:white; border-radius:9999px; font-weight:700; }
+    .status-left, .status-right { display:flex; gap:8px; align-items:center; }
+
+    /* 게임 영역 */
+    .game-stage {
+      position:relative; overflow:hidden; height:280px; background:#f8fafc;
+      border-radius:14px; border:1px solid #e2e8f0;
+    }
+    .drop-word {
+      position:absolute; top:-40px;
+      font-size:28px; font-weight:800; color:#0f172a;
+      text-shadow:0 2px 0 rgba(0,0,0,0.06);
+      pointer-events:none;
+      transition: transform .08s ease, color .1s ease;
+    }
+    /* 인식 대기 중 잠금된 단어 강조 */
+    .drop-word.locked {
+      color:#2563eb;
+      transform: scale(1.05);
+      text-shadow:0 3px 0 rgba(37,99,235,0.08);
+      border-bottom:2px solid #93c5fd;
+    }
+
+    /* 인식 결과 미리보기 */
+    .preview-box {
+      background:#f1f5f9; border-radius:12px; padding:8px 12px; min-height:44px;
+      white-space:pre-wrap;
+    }
+
+    /* 툴바 */
+    .tool-row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+    /* 리더보드 */
+    .rank-list { display:grid; gap:8px; }
+    .rank-item {
+      display:grid; grid-template-columns:36px 1fr 90px; gap:12px; align-items:center;
+      padding:8px 10px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0;
+    }
+    .rank-me { background:#e0f2fe; border-color:#bae6fd; }
+    .muted { color:#64748b; }
+  </style>
+
+  <link rel="shortcut icon" href="/static/image/favicon.ico">
+  <link rel="icon" href="/static/image/favicon.ico">
+</head>
+<body>
+  <!-- 로딩 -->
+  <div class="loading hidden"><div class="loading-spinner"></div></div>
+
+  <!-- 헤더 (기존 레이아웃 동일) -->
+  <header class="site-header">
+    <h1 class="logo">
+      <a href="/" class="logo-title">
+        <img class="logo-image" src="/static/image/logo2.png" alt="로고">바른 글씨 - 속필 드롭 게임
+      </a>
+    </h1>
+    <a href="/"><img class="home-image" src="/static/image/home.png" alt="홈"></a>
+  </header>
+
+  <div class="layout-bg">
+    <div class="main-wrap">
+      <div class="cards-container">
+        <!-- 게임 카드 -->
+        <div class="upload-card">
+          <div class="card-title">게임</div>
+
+          <!-- 로그인/타이머/스코어 상태바 -->
+          <div class="status-bar">
+            <div class="status-left">
+              <span class="pill" id="me-pill">로그인 확인중...</span>
+              <span class="pill">제한시간 <b id="time-left">60</b>s</span>
+              <span class="pill">점수 <b id="score">0</b></span>
+              <span class="pill">맞춘 단어 <b id="hits">0</b></span>
+              <span class="pill muted">실패 <b id="miss">0</b></span>
+            </div>
+            <div class="status-right">
+              <button class="btn blue1" id="start-btn">시작</button>
+              <button class="btn outline" id="restart-btn" disabled>다시하기</button>
+            </div>
+          </div>
+
+          <!-- 드롭 스테이지 -->
+          <div class="game-stage" id="stage"></div>
+          <div class="muted" style="margin-top:6px;">
+            단어가 위에서 떨어집니다. <b>패드에 손글씨로 쓰고 “인식하기”</b>를 누르면 정답 처리됩니다. (Enter 가능)
+          </div>
+        </div>
+
+        <!-- 패드 카드 -->
+        <div class="upload-card">
+          <div class="card-title">쓰기 패드</div>
+
+          <div class="pad-toolbar">
+            <div class="tool-row">
+              <label>펜 두께</label>
+              <input id="penSize" type="range" min="1" max="20" value="4">
+              <span id="penSizeVal">4px</span>
+
+              <label style="margin-left:12px;">펜 색상</label>
+              <input id="penColor" type="color" value="#111111">
+
+              <label style="margin-left:12px;">
+                <input id="pressureToggle" type="checkbox" checked> 압력 반영
+              </label>
+
+              <button class="btn slate" id="undoBtn" type="button">되돌리기</button>
+              <button class="btn gray2" id="eraseToggle" type="button">지우개 OFF</button>
+              <button class="btn red" id="clearBtn" type="button">전체 지우기</button>
+            </div>
+          </div>
+
+          <div class="pad-canvas-box">
+            <canvas id="pad" class="pad-canvas"></canvas>
+          </div>
+
+          <div class="btns" style="margin-top:10px;">
+            <button class="btn blue1" id="recognize-btn">인식하기 (Enter)</button>
+            <button class="btn outline" id="clear-pad-btn">지우기</button>
+          </div>
+
+          <div style="margin-top:10px;">
+            <div class="card-title" style="margin-bottom:6px;">인식 결과</div>
+            <div class="preview-box" id="recognized-preview">-</div>
+          </div>
+
+          <div id="error-message" class="error-message hidden"></div>
+          <div id="success-message" class="success-message hidden"></div>
+        </div>
+
+        <!-- 리더보드 -->
+        <div class="rank-card">
+          <div class="card-title">드롭 게임 리더보드</div>
+          <div id="leaderboard" class="rank-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer-copyright">
+    © 2025 바른글씨. All rights reserved.
+  </footer>
+
+  <script>
+    // ================= 공통 설정 =================
+    const API_BASE = `${location.protocol}//${location.hostname}:8000`;
+
+    // 난이도/처리 관련 설정값 (조정 용이)
+    const CONFIG = {
+      SPAWN_EVERY_MS_INIT: 3000,     // 초기 스폰 간격 (↑ 늦출수록 쉬움)
+      SPAWN_EVERY_MS_MIN: 1400,      // 최소 스폰 간격
+      SPAWN_DEC_ON_HIT: 40,          // 정답 시 스폰 간격 감소폭 (작을수록 완만)
+      SPEED_BASE_INIT: 35,           // 초기 낙하 속도(px/s) (↓ 낮출수록 느림)
+      SPEED_INC_ON_HIT: 1,           // 정답 시 속도 증가폭
+      SPEED_MAX: 120,                // 최대 속도 상한
+      LOCK_TIMEOUT_MS: 4000,         // 인식 대기 중 단어 잠금 유지 최대 시간
+      JPEG_W: 640, JPEG_H: 320,      // 업로드 다운스케일 해상도
+      JPEG_Q: 0.7                    // JPEG 품질(0~1)
+    };
+
+    // Auth 토큰/이름 키 통일: index.html에서 쓰는 'token' 우선, 과거 'auth_token' 호환
+    const Auth = {
+      get token() {
+        return localStorage.getItem('token') || localStorage.getItem('auth_token') || '';
+      },
+      clear() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('username');
+      }
+    };
+
+    // 로그인 확인: 토큰이 있고 /auth/me가 200이면 OK
+    async function ensureLogin() {
+      const token = Auth.token;
+      if (!token) {
+        alert("로그인이 필요합니다. 메인에서 로그인 후 다시 들어와 주세요.");
+        location.href = "/"; // 프로젝트 홈으로 보냄
+        return false;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("auth fail");
+        const data = await res.json();
+        const username = data.username || "익명";
+        document.getElementById("me-pill").textContent = `👤 ${username}`;
+        return true;
+      } catch {
+        alert("세션이 만료되었거나 로그인 정보가 없습니다. 다시 로그인 해주세요.");
+        Auth.clear();
+        location.href = "/";
+        return false;
+      }
+    }
+
+    // ================= Handwriting Pad =================
+    class HandwritingPad {
+      constructor(canvas) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d', { willReadFrequently:true });
+        this.strokeStyle = '#111111';
+        this.baseSize = 4;
+        this.usePressure = true;
+        this.isErasing = false;
+        this.paths = [];
+        this.currentPath = null;
+
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this._bindPointerEvents();
+        this._drawGuides();
+      }
+      setStrokeStyle(c){ this.strokeStyle = c; }
+      setBaseSize(px){ this.baseSize = px; }
+      setUsePressure(on){ this.usePressure = on; }
+      toggleEraser(){ this.isErasing = !this.isErasing; return this.isErasing; }
+
+      clear(){
+        const rect=this.canvas.getBoundingClientRect();
+        this.ctx.save();
+        this.ctx.globalCompositeOperation='source-over';
+        this.ctx.fillStyle='#ffffff';
+        this.ctx.fillRect(0,0,rect.width,rect.height);
+        this.ctx.restore();
+        this._drawGuides();
+        this.paths=[];
+      }
+      undo(){ if(!this.paths.length) return; this.paths.pop(); this._redrawAll(); }
+
+      async toBlobWhiteBg(){
+        const rect=this.canvas.getBoundingClientRect();
+        const dpr=window.devicePixelRatio||1;
+        const off=document.createElement('canvas');
+        off.width=Math.round(rect.width*dpr);
+        off.height=Math.round(rect.height*dpr);
+        const octx=off.getContext('2d');
+        octx.scale(dpr,dpr);
+        octx.fillStyle='#ffffff';
+        octx.fillRect(0,0,rect.width,rect.height);
+        octx.drawImage(this.canvas,0,0);
+        return await new Promise(r=>off.toBlob(r,'image/png',1.0));
+      }
+
+      resize(){
+        const rect=this.canvas.getBoundingClientRect();
+        if(!rect.width||!rect.height) return;
+        const dpr=window.devicePixelRatio||1;
+        this.canvas.width=Math.round(rect.width*dpr);
+        this.canvas.height=Math.round(rect.height*dpr);
+        this.ctx.setTransform(dpr,0,0,dpr,0,0);
+        this.ctx.fillStyle='#ffffff';
+        this.ctx.fillRect(0,0,rect.width,rect.height);
+        this._drawGuides();
+        this._redrawAll();
+      }
+
+      _drawGuides(){
+        const rect=this.canvas.getBoundingClientRect(), ctx=this.ctx;
+        ctx.save(); ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1;
+        const h=rect.height, margin=16, mid=Math.round(h/2);
+        ctx.beginPath();
+        ctx.moveTo(margin, mid-40); ctx.lineTo(rect.width-margin, mid-40);
+        ctx.moveTo(margin, mid);    ctx.lineTo(rect.width-margin, mid);
+        ctx.moveTo(margin, mid+40); ctx.lineTo(rect.width-margin, mid+40);
+        ctx.stroke(); ctx.restore();
+      }
+
+      _bindPointerEvents(){
+        const c=this.canvas;
+        const onDown=(e)=>{
+          e.preventDefault();
+          c.setPointerCapture(e.pointerId);
+          this.currentPath = {
+            points: [],
+            erase: this.isErasing,
+            color: this.strokeStyle,
+            size: this.baseSize,
+            pressure: this.usePressure
+          };
+          this.paths.push(this.currentPath);
+          this._addPoint(e);
+        };
+        const onMove=(e)=>{ if(!this.currentPath) return; this._addPoint(e,true); };
+        const onUp=(e)=>{ if(!this.currentPath) return; this._addPoint(e,true); this.currentPath=null; c.releasePointerCapture(e.pointerId); };
+        c.addEventListener('pointerdown', onDown, {passive:false});
+        c.addEventListener('pointermove', onMove, {passive:false});
+        c.addEventListener('pointerup', onUp, {passive:false});
+        c.addEventListener('pointercancel', onUp, {passive:false});
+        c.addEventListener('touchstart', e=>e.preventDefault(), {passive:false});
+        c.addEventListener('touchmove',  e=>e.preventDefault(), {passive:false});
+      }
+
+      _addPoint(e, draw=false){
+        const rect=this.canvas.getBoundingClientRect();
+        const x=e.clientX-rect.left, y=e.clientY-rect.top;
+        const p=(this.usePressure && e.pressure)?e.pressure:1;
+        this.currentPath.points.push({x,y,p});
+        if(draw) this._redrawLastSegment(); else this._drawDot(x,y,p);
+      }
+      _strokeWidth(base,p){ const f=Math.max(0.3, Math.min(1.0,p)); return base*(this.usePressure?(0.6+f*0.8):1.0); }
+      _redrawAll(){
+        const rect=this.canvas.getBoundingClientRect(), ctx=this.ctx;
+        ctx.save(); ctx.globalCompositeOperation='source-over'; ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,rect.width,rect.height); ctx.restore();
+        this._drawGuides(); for(const path of this.paths) this._drawPath(path);
+      }
+      _drawPath(path){
+        const ctx=this.ctx; ctx.save(); ctx.lineCap='round'; ctx.lineJoin='round';
+        ctx.globalCompositeOperation=path.erase?'destination-out':'source-over'; ctx.strokeStyle=path.color;
+        const pts=path.points;
+        if(pts.length===1){ const w=this._strokeWidth(path.size, pts[0].p);
+          ctx.beginPath(); ctx.arc(pts[0].x, pts[0].y, w/2, 0, Math.PI*2);
+          ctx.fillStyle=path.erase?'rgba(0,0,0,1)':path.color; ctx.fill(); ctx.restore(); return; }
+        for(let i=1;i<pts.length;i++){ const a=pts[i-1], b=pts[i]; const w=this._strokeWidth(path.size, b.p);
+          ctx.lineWidth=w; const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.quadraticCurveTo(a.x,a.y,cx,cy); ctx.stroke(); }
+        ctx.restore();
+      }
+      _redrawLastSegment(){ const path=this.paths[this.paths.length-1]; if(!path) return; const lastTwo={...path, points:path.points.slice(-2)}; this._drawPath(lastTwo); }
+      _drawDot(x,y,p){ const ctx=this.ctx; ctx.save(); ctx.globalCompositeOperation=this.isErasing?'destination-out':'source-over';
+        ctx.fillStyle=this.isErasing?'rgba(0,0,0,1)':this.strokeStyle; const r=this._strokeWidth(this.baseSize,p)/2;
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+    }
+
+    // Pad 인스턴스 & 툴 연결
+    let pad=null;
+    function initPad(){
+      const canvas=document.getElementById('pad');
+      pad=new HandwritingPad(canvas);
+      const size=document.getElementById('penSize');
+      const sizeVal=document.getElementById('penSizeVal');
+      size.addEventListener('input', ()=>{ sizeVal.textContent=size.value+'px'; pad.setBaseSize(Number(size.value)); });
+      const color=document.getElementById('penColor');
+      color.addEventListener('input', ()=> pad.setStrokeStyle(color.value));
+      const press=document.getElementById('pressureToggle');
+      press.addEventListener('change', ()=> pad.setUsePressure(press.checked));
+      document.getElementById('undoBtn').addEventListener('click', ()=> pad.undo());
+      const eraseToggle=document.getElementById('eraseToggle');
+      eraseToggle.addEventListener('click', ()=>{ const on=pad.toggleEraser(); eraseToggle.textContent=on?'지우개 ON':'지우개 OFF'; });
+      document.getElementById('clearBtn').addEventListener('click', ()=> pad.clear());
+      document.getElementById('clear-pad-btn').addEventListener('click', ()=> pad.clear());
+    }
+
+    // ================= 게임 로직 =================
+    const stage = { el:null, width:0, height:0 };
+    const game = {
+      running:false, timeLeft:60, timerId:null,
+      score:0, hits:0, miss:0,
+      wordsPool: [
+        "사랑","바다","서울","학교","컴퓨터","연습","하늘","나무","바람","봄날",
+        "햇살","도로","여행","노력","정신","사과","감사","행복","웃음","친구"
+      ],
+      active: [],                // 떨어지는 단어들
+      spawnEveryMs: CONFIG.SPAWN_EVERY_MS_INIT,  // 초기 스폰 간격
+      speedBase: CONFIG.SPEED_BASE_INIT,         // 초기 낙하 속도
+      lastSpawn: 0,
+      nowWordId: 0,
+      _last: 0,
+      lockedId: null,            // 인식 중 잠금된 단어 ID
+      lockedAt: 0
+    };
+
+    function initStage(){
+      const el=document.getElementById('stage');
+      stage.el=el;
+      const rect=el.getBoundingClientRect();
+      stage.width=rect.width; stage.height=rect.height;
+      window.addEventListener('resize', ()=>{
+        const r=el.getBoundingClientRect();
+        stage.width=r.width; stage.height=r.height;
+      });
+    }
+
+    function spawnWord(){
+      const text = game.wordsPool[Math.floor(Math.random()*game.wordsPool.length)];
+      const span = document.createElement('span');
+      span.className = "drop-word";
+      span.dataset.id = (++game.nowWordId).toString();
+      span.textContent = text;
+      const x = Math.floor( Math.random()*(stage.width-120) ) + 20;
+      span.style.left = x+"px";
+      span.style.top = "-40px";
+      stage.el.appendChild(span);
+      game.active.push({
+        id: game.nowWordId, el: span, text, x, y: -40,
+        speed: game.speedBase + Math.random()*30,
+        locked: false
+      });
+    }
+
+    function updateWords(dt){
+      const now = performance.now();
+      for (let i=game.active.length-1; i>=0; i--){
+        const w=game.active[i];
+
+        // 잠금된 단어는 멈춤 (시간 초과 시 자동 해제)
+        if (w.locked) {
+          if (now - game.lockedAt > CONFIG.LOCK_TIMEOUT_MS) {
+            w.locked = false;
+            w.el.classList.remove('locked');
+            game.lockedId = null;
+          }
+          continue;
+        }
+
+        // 낙하
+        w.y += (w.speed * dt/1000);
+        w.el.style.top = Math.floor(w.y)+"px";
+
+        if (w.y > stage.height){
+          // 바닥 도달 → 실패 (잠금 중이 아니므로 정상 실패)
+          stage.el.removeChild(w.el);
+          game.active.splice(i,1);
+          game.miss += 1;
+          document.getElementById('miss').textContent = game.miss;
+        }
+      }
+    }
+
+    function gameLoop(ts){
+      if(!game.running) return;
+      if(!game._last) game._last=ts;
+      const dt = ts - game._last; game._last = ts;
+
+      // 스폰
+      game.lastSpawn += dt;
+      if (game.lastSpawn >= game.spawnEveryMs){
+        game.lastSpawn = 0;
+        spawnWord();
+      }
+
+      // 낙하
+      updateWords(dt);
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function startGame(){
+      if (game.running) return;
+      game.running = true;
+      game.timeLeft = 60;
+      game.score = 0; game.hits = 0; game.miss = 0;
+      game.spawnEveryMs = CONFIG.SPAWN_EVERY_MS_INIT;
+      game.speedBase = CONFIG.SPEED_BASE_INIT;
+      game.lastSpawn = 9999;
+      game._last = 0;
+      game.lockedId = null;
+      document.getElementById('time-left').textContent = "60";
+      document.getElementById('score').textContent = "0";
+      document.getElementById('hits').textContent = "0";
+      document.getElementById('miss').textContent = "0";
+      document.getElementById('recognized-preview').textContent = "-";
+      // 스테이지 정리
+      game.active.forEach(w=> w.el.remove());
+      game.active = [];
+      pad && pad.clear();
+
+      // 버튼 상태
+      document.getElementById('start-btn').disabled = true;
+      document.getElementById('restart-btn').disabled = true;
+
+      // 타이머
+      game.timerId = setInterval(()=>{
+        game.timeLeft -= 1;
+        document.getElementById('time-left').textContent = game.timeLeft;
+        if (game.timeLeft <= 0){
+          endGame();
+        }
+      }, 1000);
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    async function endGame(){
+      if (!game.running) return;
+      game.running = false;
+      clearInterval(game.timerId);
+      game.timerId = null;
+      document.getElementById('start-btn').disabled = false;
+      document.getElementById('restart-btn').disabled = false;
+
+      // 남은 단어 제거
+      game.active.forEach(w=> w.el.remove());
+      game.active = [];
+      game.lockedId = null;
+
+      // 점수 제출(로그인 상태에서만)
+      try{
+        const res = await fetch(`${API_BASE}/game/drop/submit`, {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "Authorization": `Bearer ${Auth.token}`
+          },
+          body: JSON.stringify({
+            score: game.score,
+            hits: game.hits,
+            miss: game.miss,
+            duration_ms: 60000
+          })
+        });
+        if (res.ok){
+          await loadLeaderboard(); // 갱신
+          alert(`게임 종료!\n점수: ${game.score}\n맞춘 단어: ${game.hits}\n실패: ${game.miss}`);
+        } else {
+          alert(`게임 종료(점수 저장 실패): ${res.status}`);
+        }
+      } catch (e){
+        console.error(e);
+        alert("게임 종료(네트워크 오류)");
+      }
+    }
+
+    // ============ 유틸: 패드 → 압축 JPEG Blob ============
+    async function padToCompressedBlob(pad, maxW, maxH, mime, quality){
+      // pad.canvas 내부 픽셀 해상도 사용
+      const src = pad.canvas;
+      const sW = src.width, sH = src.height;
+      const scale = Math.min(1, maxW / sW, maxH / sH);
+      const w = Math.max(1, Math.round(sW * scale));
+      const h = Math.max(1, Math.round(sH * scale));
+      const off = document.createElement('canvas');
+      off.width = w; off.height = h;
+      const ctx = off.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0,0,w,h);
+      ctx.drawImage(src, 0, 0, w, h);
+      return await new Promise(r=> off.toBlob(r, mime, quality));
+    }
+
+    // ============ 인식 → 현재 단어 정답 체크 ============
+    let recognizeBusy = false;
+
+    function pickTargetForCheck(){
+      if (!game.active.length) return null;
+      // 현재 화면에서 가장 아래에 있는 단어 선택
+      const sorted = [...game.active].sort((a,b)=> b.y - a.y);
+      return sorted[0];
+    }
+
+    function lockTarget(target){
+      target.locked = true;
+      target.el.classList.add('locked');
+      game.lockedId = target.id;
+      game.lockedAt = performance.now();
+    }
+
+    function unlockTarget(id){
+      const w = game.active.find(x=> x.id === id);
+      if (w){
+        w.locked = false;
+        w.el.classList.remove('locked');
+      }
+      if (game.lockedId === id) game.lockedId = null;
+    }
+
+    async function recognizeAndCheck(){
+      if (!game.running){
+        alert("게임을 먼저 시작해주세요.");
+        return;
+      }
+      if (recognizeBusy) return; // 중복 호출 방지
+      const target = pickTargetForCheck();
+      if (!target) {
+        const err = document.getElementById('error-message');
+        err.textContent = "화면에 단어가 없습니다. 잠시 후 다시 시도!";
+        err.classList.remove('hidden');
+        setTimeout(()=> err.classList.add('hidden'), 900);
+        return;
+      }
+
+      // 인식 대기 중 단어가 내려가 사라지지 않도록 잠금
+      lockTarget(target);
+
+      recognizeBusy = true;
+      const btn = document.getElementById('recognize-btn');
+      btn.disabled = true;
+
+      const loadingEl = document.querySelector('.loading');
+      loadingEl.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      try{
+        // ↓↓↓ 검사 시간 단축: 다운스케일 + JPEG 압축 업로드 ↓↓↓
+        let blob = await padToCompressedBlob(
+          pad, CONFIG.JPEG_W, CONFIG.JPEG_H, 'image/jpeg', CONFIG.JPEG_Q
+        );
+        if (!blob) { // 브라우저가 jpeg 인코딩 실패 시 PNG fallback
+          blob = await pad.toBlobWhiteBg();
+        }
+
+        const formData = new FormData();
+        formData.append("file", new File([blob], "handwriting.jpg", { type: blob.type || "image/jpeg" }));
+
+        const res = await fetch(`${API_BASE}/api/gpt/evaluate`, { method:"POST", body:formData });
+        const result = await res.json();
+        if (!res.ok) { throw new Error(result.detail || ("HTTP "+res.status)); }
+
+        const recogRaw = result.recognized_text || result.corrected_text || "";
+        const rec = (recogRaw || "").replace(/\s/g,"");
+        document.getElementById('recognized-preview').textContent = recogRaw || "-";
+
+        const targetClean = (target.text||"").replace(/\s/g,"");
+
+        // 매칭 규칙: 인식문자열에 targetClean 포함 시 정답
+        if (rec && targetClean && rec.includes(targetClean)){
+          // 정답 처리
+          game.score += Math.max(10, 30 - Math.floor(target.y/30)); // 빠르게 맞출수록 가점
+          game.hits += 1;
+
+          // 난이도 증가(완만하게)
+          game.spawnEveryMs = Math.max(CONFIG.SPAWN_EVERY_MS_MIN, game.spawnEveryMs - CONFIG.SPAWN_DEC_ON_HIT);
+          game.speedBase = Math.min(CONFIG.SPEED_MAX, game.speedBase + CONFIG.SPEED_INC_ON_HIT);
+
+          // 화면에서 제거
+          target.el.remove();
+          game.active = game.active.filter(w => w.id !== target.id);
+          game.lockedId = null;
+
+          // UI 반영
+          document.getElementById('score').textContent = game.score;
+          document.getElementById('hits').textContent = game.hits;
+
+          // 패드 초기화
+          pad.clear();
+
+          // 피드백
+          const ok = document.getElementById('success-message');
+          ok.textContent = "정답! 점수 +";
+          ok.classList.remove('hidden');
+          setTimeout(()=> ok.classList.add('hidden'), 800);
+        } else {
+          // 오답 피드백 (감점은 없음)
+          const err = document.getElementById('error-message');
+          err.textContent = "오답 또는 인식 불량. 다시 시도!";
+          err.classList.remove('hidden');
+          setTimeout(()=> err.classList.add('hidden'), 900);
+          // 잠금 해제(단어 계속 떨어지게)
+          unlockTarget(target.id);
+        }
+      } catch (e){
+        console.error(e);
+        alert("인식 실패: " + e.message);
+        unlockTarget(target.id);
+      } finally {
+        loadingEl.classList.add('hidden');
+        document.body.style.overflow = '';
+        recognizeBusy = false;
+        btn.disabled = false;
+      }
+    }
+
+    // ================= 리더보드 =================
+    async function loadLeaderboard(){
+      try{
+        const headers = {};
+        if (Auth.token) headers["Authorization"] = `Bearer ${Auth.token}`;
+        const res = await fetch(`${API_BASE}/game/drop/leaderboard`, { headers });
+        const data = await res.json();
+        const list = Array.isArray(data?.items) ? data.items : [];
+        const mine = data?.me || null;
+        const box = document.getElementById('leaderboard');
+        box.innerHTML = '';
+        if (!list.length){
+          box.innerHTML = '<div class="muted">아직 기록이 없습니다.</div>';
+          return;
+        }
+        list.slice(0,20).forEach((row,idx)=>{
+          const div = document.createElement('div');
+          const isMe = (mine && mine.username===row.username && mine.score===row.score && mine.at===row.at);
+          div.className = 'rank-item' + (isMe ? ' rank-me' : '');
+          const dateStr = new Date((row.at||0)*1000).toLocaleString();
+          div.innerHTML = `
+            <div>#${idx+1}</div>
+            <div><b>${row.username}</b><div class="muted" style="font-size:12px;">${dateStr}</div></div>
+            <div style="text-align:right;"><b>${row.score}</b> 점</div>
+          `;
+          box.appendChild(div);
+        });
+      } catch (e){
+        console.error(e);
+      }
+    }
+
+    // ================= 이벤트 바인딩 & 초기화 =================
+    window.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('recognize-btn').click();
+      }
+    });
+
+    function bindUI(){
+      document.getElementById('start-btn').addEventListener('click', startGame);
+      document.getElementById('restart-btn').addEventListener('click', startGame);
+      document.getElementById('recognize-btn').addEventListener('click', recognizeAndCheck);
+    }
+
+    window.onload = async () => {
+      if (!await ensureLogin()) return;       // 로그인 강제
+      initStage();
+      initPad();
+      bindUI();
+      await loadLeaderboard();
+    };
+  </script>
+</body>
+</html>
