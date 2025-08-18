@@ -68,7 +68,7 @@ def leaderboard(req: Request):
             best = sorted(mine, key=lambda x: (x.get("score", 0), x.get("at", 0)), reverse=True)[0]
             me = {"username": best["username"], "score": best["score"], "at": best["at"]}
 
-    return {"items": items_sorted[:100], "me": me}
+    return {"items": items_sorted[:10], "me": me}
 
 @router.post("/game/drop/submit")
 def submit_score(req: Request, body: SubmitIn):

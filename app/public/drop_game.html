@@ -684,7 +684,7 @@
           box.innerHTML = '<div class="muted">아직 기록이 없습니다.</div>';
           return;
         }
-        list.slice(0,20).forEach((row,idx)=>{
+        list.slice(0,10).forEach((row,idx)=>{
           const div = document.createElement('div');
           const isMe = (mine && mine.username===row.username && mine.score===row.score && mine.at===row.at);
           div.className = 'rank-item' + (isMe ? ' rank-me' : '');
