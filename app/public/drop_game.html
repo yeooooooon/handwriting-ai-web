@@ -15,11 +15,17 @@
 
     /* 상단 상태바 */
     .status-bar {
-      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      display:flex; gap:12px; align-items:center; justify-content:center; text-align: center;
       padding:10px 14px; background:#eef2ff; border-radius:12px; margin-bottom:12px;
     }
-    .pill { padding:6px 10px; background:white; border-radius:9999px; font-weight:700; }
+    .pill { padding:6px 10px; background:white; border-radius:9999px; font-size: 13px; font-weight:600; }
     .status-left, .status-right { display:flex; gap:8px; align-items:center; }
+
+    .status-right .btn {
+      white-space: nowrap;   /* 줄바꿈 금지 */
+      padding: 6px 14px;     /* 버튼 크기도 조금 넉넉하게 */
+      margin-left: 6px;  /* pill과 버튼 사이 여백 */
+    }
 
     /* 게임 영역 */
     .game-stage {
@@ -90,7 +96,7 @@
               <span class="pill" id="me-pill">로그인 확인중...</span>
               <span class="pill">제한시간 <b id="time-left">60</b>s</span>
               <span class="pill">점수 <b id="score">0</b></span>
-              <span class="pill">맞춘 단어 <b id="hits">0</b></span>
+              <span class="pill">성공 <b id="hits">0</b></span>
               <span class="pill muted">실패 <b id="miss">0</b></span>
             </div>
             <div class="status-right">
