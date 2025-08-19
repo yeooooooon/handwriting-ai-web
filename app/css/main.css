@@ -27,7 +27,7 @@ body {
   align-items: center;
   gap: 14px;               /* ← 여기만 있으면 '내 점수' 와 'kim (로그아웃)' 사이 간격 확보 */
   padding: 8px 16px;
-  color: black;
+  color: #0f172a;
 }
 
 /* 필요하면 기존 margin-right 제거 */
@@ -68,14 +68,6 @@ body {
   gap: 48px;                     /* 요소 간 간격 */
 }
 
-/* 순위 카드: 좌표 고정 제거 */
-.rank-card{
-  width: 300px;
-  height: 400px;
-  padding: 30px;
-  border-radius: 10px;
-}
-
 .menu{
   display: flex;
   flex-direction: column;
@@ -89,6 +81,7 @@ body {
   margin-bottom: 20px;
   display: flex;
   justify-content: center;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* 초기 그림자 */
 }
 
 /* 버튼 공통 스타일 */
@@ -105,7 +98,7 @@ body {
   text-align: center;
   cursor: pointer;
   text-decoration: none;
-  color: black;
+  color: #0f172a;
   transition: background-color 0.2s ease;
   box-shadow: 0 4px 8px rgba(0,0,0,0.05);
   transition: all 0.2s ease;
@@ -125,8 +118,8 @@ body {
 }
 
 .rank-card{
-  position: relative;
-  left: 50px;
+  /* position: relative;
+  left: 50px; */
   width: 300px;
   height: 400px;
   padding: 30px;
@@ -134,9 +127,10 @@ body {
 }
 
 .card-title{
-  font-size: 22px;
+  font-size: 25px;
   text-align: center;
   font-family: 'Pretendard-Bold', sans-serif;
+  color: #0f172a;
 }
 
 .rank-list {
