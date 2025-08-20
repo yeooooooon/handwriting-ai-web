@@ -5,6 +5,8 @@ from fastapi.responses import JSONResponse
 from PIL import Image
 import base64, io, json, os, datetime
 import time
+from urllib.parse import urlparse
+
 from app.routers.auth_fs import (
     bearer_token_from_request,
     get_username_from_token,
@@ -127,7 +129,17 @@ async def evaluate_handwriting(request: Request, file: UploadFile = File(...)):
     try:
         token = bearer_token_from_request(request)
         username = get_username_from_token(token or "")
-        if username:
+
+        # Referer가 /daily 로 시작할 때만 저장
+        allow_save = False
+        try:
+            ref = request.headers.get("referer") or request.headers.get("Referer") or ""
+            path = urlparse(ref).path if ref else ""
+            allow_save = path.startswith("/daily")
+        except Exception:
+            allow_save = False
+
+        if username and allow_save:
             append_user_score(username, {
                 "ts": int(time.time()),
                 "score": round(avg_score, 2),
