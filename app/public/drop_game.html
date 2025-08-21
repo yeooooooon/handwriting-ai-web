@@ -8,7 +8,7 @@
   <!-- 기존 디자인과 동일한 스타일 참조 -->
   <link rel="stylesheet" href="/static/globals.css?v=333">
   <link rel="stylesheet" href="/static/styleguide.css?v=333">
-  <link rel="stylesheet" href="/static/style.css?v=334">
+  <link rel="stylesheet" href="/static/style.css?v=333">
 
   <style>
     .hidden { display:none; }
@@ -64,6 +64,50 @@
     }
     .rank-me { background:#e0f2fe; border-color:#bae6fd; }
     .muted { color:#64748b; }
+
+    /* ===== 결과 모달 ===== */
+    .result-modal { 
+      position: fixed; inset: 0; z-index: 9999; 
+      display: none;
+    }
+    .result-modal.show { display:block; }
+
+    .result-backdrop{
+      position:absolute; inset:0; background: rgba(15,23,42,.45);
+    }
+
+    .result-panel{
+      position:absolute; left:50%; top:50%;
+      transform: translate(-50%, -50%);
+      width:min(520px, 92vw);
+      background:#fff; border-radius:16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.18);
+      padding: 22px 22px 18px;
+    }
+
+    .result-title{ font-size:22px; font-weight:800; margin:0 0 8px; }
+    .result-sub{ color:#64748b; margin-bottom:16px; }
+
+    .result-stats{
+      display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin:12px 0 18px;
+    }
+    .result-stat{
+      background:#f8fafc; border:1px solid #e2e8f0;
+      border-radius:12px; padding:12px; text-align:center;
+    }
+    .result-stat b{ font-size:22px; display:block; }
+
+    .result-actions{ display:flex; gap:10px; justify-content:flex-end; }
+    .result-actions .btn{ padding:10px 16px; }
+
+    .result-close{
+      position:absolute; right:10px; top:10px;
+      border:none; background:transparent; font-size:18px; cursor:pointer;
+    }
+
+    /* 스크롤 잠금 시 바디 흔들림 방지 */
+    .body-lock { overflow:hidden; }
+
   </style>
 
   <link rel="shortcut icon" href="/static/image/favicon.ico">
@@ -152,6 +196,38 @@
           <div id="error-message" class="error-message hidden"></div>
           <div id="success-message" class="success-message hidden"></div>
         </div>
+
+        <!-- ===== 게임 결과 모달 ===== -->
+      <div id="resultModal" class="result-modal" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="result-backdrop" data-close="1"></div>
+        <div class="result-panel" role="document">
+          <button class="result-close" aria-label="닫기" data-close="1">✕</button>
+
+          <h2 class="result-title">게임 종료!</h2>
+          <div class="result-sub">이번 판 성적이에요.</div>
+
+          <div class="result-stats">
+            <div class="result-stat">
+              총점
+              <b id="res-score">0</b>
+            </div>
+            <div class="result-stat">
+              정답
+              <b id="res-hits">0</b>
+            </div>
+            <div class="result-stat">
+              실패
+              <b id="res-miss">0</b>
+            </div>
+          </div>
+
+    <div class="result-actions">
+      <button id="res-home"   class="btn gray2"   type="button">홈으로</button>
+      <button id="res-replay" class="btn blue1"   type="button">다시하기</button>
+    </div>
+  </div>
+</div>
+
 
         <!-- 리더보드 -->
         <div class="rank-card">
@@ -496,45 +572,47 @@
       requestAnimationFrame(gameLoop);
     }
 
-    async function endGame(){
-      if (!game.running) return;
-      game.running = false;
-      clearInterval(game.timerId);
-      game.timerId = null;
-      document.getElementById('start-btn').disabled = false;
-      document.getElementById('restart-btn').disabled = false;
+      async function endGame(){
+    if (!game.running) return;
+    game.running = false;
+    clearInterval(game.timerId);
+    game.timerId = null;
+    document.getElementById('start-btn').disabled = false;
+    document.getElementById('restart-btn').disabled = false;
 
-      // 남은 단어 제거
-      game.active.forEach(w=> w.el.remove());
-      game.active = [];
-      game.lockedId = null;
+    // 남은 단어 제거
+    game.active.forEach(w=> w.el.remove());
+    game.active = [];
+    game.lockedId = null;
 
-      // 점수 제출(로그인 상태에서만)
-      try{
-        const res = await fetch(`${API_BASE}/game/drop/submit`, {
-          method:"POST",
-          headers:{
-            "Content-Type":"application/json",
-            "Authorization": `Bearer ${Auth.token}`
-          },
-          body: JSON.stringify({
-            score: game.score,
-            hits: game.hits,
-            miss: game.miss,
-            duration_ms: 60000
-          })
-        });
-        if (res.ok){
-          await loadLeaderboard(); // 갱신
-          alert(`게임 종료!\n점수: ${game.score}\n맞춘 단어: ${game.hits}\n실패: ${game.miss}`);
-        } else {
-          alert(`게임 종료(점수 저장 실패): ${res.status}`);
-        }
-      } catch (e){
-        console.error(e);
-        alert("게임 종료(네트워크 오류)");
+    // 점수 제출(로그인 상태에서만)
+    try{
+      const res = await fetch(`${API_BASE}/game/drop/submit`, {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization": `Bearer ${Auth.token}`
+        },
+        body: JSON.stringify({
+          score: game.score,
+          hits: game.hits,
+          miss: game.miss,
+          duration_ms: 60000
+        })
+      });
+      if (res.ok){
+        await loadLeaderboard(); // 갱신
       }
-    }
+    } catch (e){ console.error(e); }
+
+    // 👉 모달 오픈
+    openResultModal({ 
+      score: game.score, 
+      hits: game.hits, 
+      miss: game.miss 
+    });
+  }
+
 
     // ============ 유틸: 패드 → 압축 JPEG Blob ============
     async function padToCompressedBlob(pad, maxW, maxH, mime, quality){
@@ -720,6 +798,43 @@
       document.getElementById('restart-btn').addEventListener('click', startGame);
       document.getElementById('recognize-btn').addEventListener('click', recognizeAndCheck);
     }
+
+    // ===== 결과 모달 =====
+    function openResultModal({score, hits, miss}) {
+      const m = document.getElementById('resultModal');
+      m.classList.add('show');
+      m.setAttribute('aria-hidden','false');
+      document.body.classList.add('body-lock');
+
+      document.getElementById('res-score').textContent = score;
+      document.getElementById('res-hits').textContent  = hits;
+      document.getElementById('res-miss').textContent  = miss;
+    }
+    function closeResultModal() {
+      const m = document.getElementById('resultModal');
+      m.classList.remove('show');
+      m.setAttribute('aria-hidden','true');
+      document.body.classList.remove('body-lock');
+    }
+    // 클릭/ESC로 닫기 + 버튼 핸들러
+    (function bindResultModal(){
+      const m = document.getElementById('resultModal');
+      m.addEventListener('click', (e)=>{
+        if (e.target.dataset.close === '1') closeResultModal();
+      });
+      window.addEventListener('keydown', (e)=>{
+        if (e.key === 'Escape' && m.classList.contains('show')) closeResultModal();
+      });
+      document.getElementById('res-home').addEventListener('click', ()=> {
+        closeResultModal();
+        location.href = '/';
+      });
+      document.getElementById('res-replay').addEventListener('click', ()=> {
+        closeResultModal();
+        startGame();               // 다시 시작
+      });
+    })();
+
 
     window.onload = async () => {
       if (!await ensureLogin()) return;       // 로그인 강제

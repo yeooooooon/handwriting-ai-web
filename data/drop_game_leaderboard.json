@@ -30,6 +30,14 @@
       "hits": 2,
       "miss": 17,
       "duration_ms": 60000,
+      "at": 1755766868
+    },
+    {
+      "username": "yeon",
+      "score": 46,
+      "hits": 2,
+      "miss": 17,
+      "duration_ms": 60000,
       "at": 1755601838
     },
     {
@@ -63,6 +71,22 @@
       "miss": 18,
       "duration_ms": 60000,
       "at": 1755486802
+    },
+    {
+      "username": "yeon",
+      "score": 0,
+      "hits": 0,
+      "miss": 18,
+      "duration_ms": 60000,
+      "at": 1755766801
+    },
+    {
+      "username": "yeon",
+      "score": 0,
+      "hits": 0,
+      "miss": 17,
+      "duration_ms": 60000,
+      "at": 1755765946
     },
     {
       "username": "yeon",
