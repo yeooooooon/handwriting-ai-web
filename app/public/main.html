@@ -236,6 +236,13 @@
       if (e.target.id === 'toLoginLink')  setMode('login');
     });
 
+    function logout() {
+      Auth.token = '';
+      Auth.username = '';
+      renderAuthButtons();
+      alert("로그아웃 되었습니다.");
+    }
+
     // ===== 헤더 버튼 상태/동작 =====
     function renderAuthButtons() {
       const loginA  = document.querySelector('.login');
@@ -248,6 +255,7 @@
         loginA.onclick = () => { Auth.token=''; Auth.username=''; renderAuthButtons(); };
         signupA.classList.add('hidden');
         profA.classList.remove('hidden');
+        loginA.onclick = () => logout();
         profA.onclick = () => location.href = '/profile';
       } else {
         loginA.textContent = '로그인';

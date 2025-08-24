@@ -136,6 +136,36 @@
           <div id="error-list" class="fb-row"></div>
         </div>
       </div>
+
+      <!-- Auth Modal -->
+      <div id="authModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+        <div class="modal-backdrop" data-close="1"></div>
+
+        <div class="modal-panel" role="document">
+          <button class="modal-close" aria-label="닫기" data-close="1">✕</button>
+
+          <h2 class="modal-title">로그인</h2>
+
+          <form id="authForm">
+            <label class="field">
+              <span>아이디</span>
+              <input id="auth-username" name="username" type="text" autocomplete="username" required />
+            </label>
+
+            <label class="field">
+              <span>비밀번호</span>
+              <input id="auth-password" name="password" type="password" autocomplete="current-password" required />
+            </label>
+
+            <button id="authSubmit" type="submit" class="primary">로그인</button>
+
+            <!-- 하단 스위처: 왼쪽 문구 / 오른쪽 링크 -->
+            <div id="switcherRow" class="switcher-row"></div>
+
+            <p id="authError" class="error" role="alert" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -159,36 +189,108 @@
       set username(v) { v ? localStorage.setItem('username', v) : localStorage.removeItem('username'); }
     };
 
-    async function signupPrompt() {
-      const username = prompt("회원가입 - 아이디");
-      if (!username) return;
-      const password = prompt("회원가입 - 비밀번호(보안 없음, 데모용)");
-      if (!password) return;
-      const res = await fetch(`/auth/register`, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json().catch(()=>({}));
-      if (!res.ok) { alert(data.detail || "회원가입 실패"); return; }
-      alert("회원가입 완료. 로그인 해주세요.");
+    // ===== 모달 요소 =====
+    const modalEl   = document.getElementById('authModal');
+    const titleEl   = modalEl.querySelector('.modal-title');
+    const formEl    = document.getElementById('authForm');
+    const userEl    = document.getElementById('auth-username');
+    const passEl    = document.getElementById('auth-password');
+    const submitEl  = document.getElementById('authSubmit');
+    const errorEl   = document.getElementById('authError');
+    const switcherRow = document.getElementById('switcherRow');
+
+    let authMode = 'login'; // 'login' | 'signup'
+
+    function setAuthMode(next){
+      authMode = next;
+      if(authMode==='login'){
+        titleEl.textContent = '로그인';
+        submitEl.textContent = '로그인';
+        passEl.autocomplete = 'current-password';
+        switcherRow.innerHTML =
+          '<span class="muted">아직 계정이 없나요?</span>' +
+          '<a href="javascript:void(0)" id="toSignupLink">회원가입</a>';
+      }else{
+        titleEl.textContent = '회원가입';
+        submitEl.textContent = '회원가입';
+        passEl.autocomplete = 'new-password';
+        switcherRow.innerHTML =
+          '<span class="muted">이미 계정이 있나요?</span>' +
+          '<a href="javascript:void(0)" id="toLoginLink">로그인</a>';
+      }
+      errorEl.textContent = '';
+      setTimeout(()=>userEl.focus(),0);
     }
 
-    async function loginPrompt() {
-      const username = prompt("로그인 - 아이디");
-      if (!username) return;
-      const password = prompt("로그인 - 비밀번호");
-      if (!password) return;
-      const res = await fetch(`/auth/login`, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json().catch(()=>({}));
-      if (!res.ok || !data.token) { alert(data.detail || "로그인 실패"); return; }
-      Auth.token = data.token;
-      Auth.username = data.username || username;
-      renderAuthButtons();
-      alert(`${Auth.username}님 로그인되었습니다.`);
+    function openAuth(next='login', preset=''){
+      setAuthMode(next);
+      modalEl.classList.remove('hidden');
+      modalEl.setAttribute('aria-hidden','false');
+      document.body.style.overflow = 'hidden';
+      userEl.value = preset || '';
+      passEl.value = '';
     }
+
+    function closeAuth(){
+      modalEl.classList.add('hidden');
+      modalEl.setAttribute('aria-hidden','true');
+      document.body.style.overflow = '';
+    }
+
+    // 닫기(배경/X/ESC)
+    modalEl.addEventListener('click', (e)=>{ if(e.target.dataset.close==='1') closeAuth(); });
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !modalEl.classList.contains('hidden')) closeAuth(); });
+
+    // 하단 링크(이벤트 위임)
+    switcherRow.addEventListener('click', (e)=>{
+      if(e.target.id==='toSignupLink') setAuthMode('signup');
+      if(e.target.id==='toLoginLink')  setAuthMode('login');
+    });
+
+    // 폼 제출
+    formEl.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      submitEl.disabled = true; errorEl.textContent = '';
+
+      const username = userEl.value.trim();
+      const password = passEl.value.trim();
+      if(!username || !password){
+        errorEl.textContent = '아이디와 비밀번호를 입력해 주세요.';
+        submitEl.disabled = false; return;
+      }
+
+      try{
+        if(authMode==='signup'){
+          const r = await fetch(`/auth/register`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ username, password })
+          });
+          const d = await r.json().catch(()=>({}));
+          if(!r.ok) throw new Error(d.detail || '회원가입 실패');
+          setAuthMode('login');
+          userEl.value = username; passEl.value = '';
+          alert('회원가입이 완료되었습니다. 로그인해 주세요.');
+        }else{
+          const r = await fetch(`/auth/login`, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ username, password })
+          });
+          const d = await r.json().catch(()=>({}));
+          if(!r.ok || !d.token) throw new Error(d.detail || '로그인 실패');
+
+          Auth.token = d.token;
+          Auth.username = d.username || username;
+          renderAuthButtons();
+          closeAuth();
+          alert(`${Auth.username}님 로그인되었습니다.`);
+        }
+      }catch(err){
+        errorEl.textContent = err.message || '처리 중 오류가 발생했습니다.';
+      }finally{
+        submitEl.disabled = false;
+      }
+    });
+
 
     function logout() {
       Auth.token = '';
@@ -210,10 +312,10 @@
       } else {
         loginA.textContent = "로그인";
         loginA.href = "javascript:void(0)";
-        loginA.onclick = () => loginPrompt();
+        loginA.onclick = () => openAuth('login');
         signupA.textContent = "회원가입";
         signupA.href = "javascript:void(0)";
-        signupA.onclick = () => signupPrompt();
+        signupA.onclick = () => openAuth('signup');
         signupA.style.display = '';
       }
     }

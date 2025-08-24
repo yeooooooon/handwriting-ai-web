@@ -49,6 +49,14 @@
       "at": 1755487611
     },
     {
+      "username": "kim",
+      "score": 45,
+      "hits": 2,
+      "miss": 16,
+      "duration_ms": 60000,
+      "at": 1756048313
+    },
+    {
       "username": "asd123",
       "score": 24,
       "hits": 1,
