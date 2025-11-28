@@ -6,10 +6,120 @@
   <title>바른 글씨 - 메인</title>
   <link rel="stylesheet" href="/static/globals.css?v=333">
   <link rel="stylesheet" href="/static/styleguide.css?v=333">
-  <link rel="stylesheet" href="/static/main.css?v=333">
-  <style>
-    .hidden { display: none; }
-  </style>
+  <link rel="stylesheet" href="/static/main.css?v=334">
+ <style>
+  .hidden { display: none; }
+  /* ===== 페이지 전체 페이드인 ===== */
+  body {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+  body.page-enter {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===== 메인 카드 전체 슬라이드업 ===== */
+  .main-wrap {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+  }
+  body.page-enter .main-wrap {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===== 타이틀 + 밑줄 ===== */
+  #title {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 6px;
+    transform-origin: center;
+    /* 펄스/둥둥 애니 안 씀 – 고정 */
+  }
+
+  /* 손글씨 느낌 밑줄 – 첫 로드시 한 번만 */
+  #title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg, #0f172a, #64748b);
+    border-radius: 9999px;
+    transform-origin: left;
+    transform: scaleX(0);
+    animation: titleUnderline 0.9s ease-out forwards;
+  }
+
+  @keyframes titleUnderline {
+    0%   { transform: scaleX(0); opacity: 0; }
+    30%  { opacity: 1; }
+    100% { transform: scaleX(1); opacity: 1; }
+  }
+
+  /* ===== 서브타이틀 부드러운 페이드인 ===== */
+  .logo-subtitle {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #64748b;
+    opacity: 0;
+    transform: translateY(4px);
+    animation: subtitleFade 0.7s ease-out 0.4s forwards;
+  }
+
+  @keyframes subtitleFade {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ===== 버튼 호버 애니메이션 ===== */
+  .btn {
+    position: relative;
+    transition:
+      transform 0.18s ease-out,
+      box-shadow 0.18s ease-out,
+      background-color 0.18s ease-out,
+      color 0.18s ease-out;
+  }
+
+  .btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
+  }
+
+  /* ===== 순위 카드 살짝 둥실둥실 ===== */
+  .rank-card {
+    animation: cardFloat 2.5s ease-in-out infinite;
+  }
+
+  @keyframes cardFloat {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-4px); }
+    100% { transform: translateY(0); }
+  }
+
+  /* ===== 순위 아이템 슬라이드인 ===== */
+  .rank-item {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: rankSlideUp 0.4s ease-out forwards;
+  }
+
+  @keyframes rankSlideUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+
   <link rel="shortcut icon" href="/static/image/favicon.ico">
   <link rel="icon" href="/static/image/favicon.ico">
 </head>
@@ -81,22 +191,23 @@
   </footer>
 
   <script>
-    //타이틀 그림자
-    const textElement = document.getElementById('title');
+// // 타이틀 그림자 (임시 비활성화)
+// const textElement = document.getElementById('title');
 
-    document.addEventListener('mousemove', (e) => {
-      const x = e.clientX;
-      const y = e.clientY;
+// document.addEventListener('mousemove', (e) => {
+//   const x = e.clientX;
+//   const y = e.clientY;
 
-      const rect = textElement.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+//   const rect = textElement.getBoundingClientRect();
+//   const centerX = rect.left + rect.width / 2;
+//   const centerY = rect.top + rect.height / 2;
 
-      const offsetX = x - centerX;
-      const offsetY = y - centerY;
+//   const offsetX = x - centerX;
+//   const offsetY = y - centerY;
 
-      textElement.style.textShadow = `${offsetX / 80}px ${offsetY / 80}px 4px rgba(0,0,0,0.5)`; //그림자 이동
-    });
+//   textElement.style.textShadow = `${offsetX / 80}px ${offsetY / 80}px 4px rgba(0,0,0,0.5)`; //그림자 이동
+// });
+
 
     // ===== 기본 설정 =====
     const API_BASE = `${location.protocol}//${location.hostname}:8000`;
@@ -286,13 +397,15 @@
           box.textContent = '아직 기록이 없습니다.';
           return;
         }
-        box.innerHTML = '';
-        list.forEach((row, i) => {
+          box.innerHTML = '';
+          list.forEach((row, i) => {
           const item = document.createElement('div');
           item.className = 'rank-item';
+          item.style.animationDelay = `${i * 0.08}s`;  // 순위마다 0.08초 딜레이
           item.innerHTML = `${i+1}. <b>${row.username}</b> - 최고점: ${row.best_score}점`;
           box.appendChild(item);
         });
+
       } catch (e) {
         console.error(e);
         box.textContent = '순위를 불러오지 못했습니다.';
@@ -301,9 +414,13 @@
 
     // 초기 실행
     window.addEventListener('load', () => {
+      // 페이지 전체 페이드인 시작
+      document.body.classList.add('page-enter');
+
       renderAuthButtons();
       loadLeaderboard();
     });
+
   </script>
   
 </body>
