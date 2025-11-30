@@ -85,7 +85,7 @@
     position: absolute;
     left: 0;
     bottom: 0;
-    height: 3px;
+    height: 2.5px;
     width: 100%;
     background: linear-gradient(90deg, #0f172a, #64748b);
     border-radius: 9999px;
@@ -93,13 +93,27 @@
     transform: scaleX(0);
     animation: titleUnderline 0.9s ease-out forwards;
   }
-
-
-  @keyframes titleUnderline {
-    0%   { transform: scaleX(0); opacity: 0; }
-    30%  { opacity: 1; }
-    100% { transform: scaleX(1); opacity: 1; }
+ 
+  /*밑줄 애니메이션 속도*/
+  body.page-enter #title::after {
+  animation: titleUnderline 1.8s ease-out 0.4s forwards;
   }
+
+ @keyframes titleUnderline {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  30% {
+    transform: scaleX(1);
+    opacity: 1;   /* 여기까지 쫙 그어짐 */
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;   /* 밑줄은 유지된 채로 서서히 사라짐 */
+  }
+}
+
 
   /* ===== 서브타이틀 부드러운 페이드인 ===== */
   .logo-subtitle {

@@ -84,6 +84,14 @@
       "username": "yeon",
       "score": 0,
       "hits": 0,
+      "miss": 19,
+      "duration_ms": 60000,
+      "at": 1764488353
+    },
+    {
+      "username": "yeon",
+      "score": 0,
+      "hits": 0,
       "miss": 18,
       "duration_ms": 60000,
       "at": 1755766801
