@@ -8,7 +8,10 @@
   <link rel="stylesheet" href="/static/styleguide.css?v=333">
   <link rel="stylesheet" href="/static/main.css?v=334">
  <style>
-  .hidden { display: none; }
+  .hidden { 
+    display: none !important;
+  }
+
   /* ===== 페이지 전체 페이드인 ===== */
   body {
     opacity: 0;
@@ -32,15 +35,51 @@
   }
 
   /* ===== 타이틀 + 밑줄 ===== */
-  #title {
-    position: relative;
-    display: inline-block;
-    padding-bottom: 6px;
-    transform-origin: center;
-    /* 펄스/둥둥 애니 안 씀 – 고정 */
+  /* 타이틀을 애니메이션용 컨테이너로 활용 */
+  /* 숨김 공통 클래스는 이렇게( !important 그대로 둬도 됨 ) */
+/* 숨김 클래스는 이렇게(이미 있으면 그대로 두면 됨) */
+/* 이미 있는 hidden 유지 */
+  .hidden {
+    display: none !important;
   }
 
-  /* 손글씨 느낌 밑줄 – 첫 로드시 한 번만 */
+  /* 타이틀 컨테이너 */
+    #title {
+      position: relative;
+      display: inline-block;
+    }
+
+    /* 처음에는 '글' 안 보이게 + 른 쪽에서 굴러 나올 준비 */
+    .char-g {
+      display: inline-block;
+      opacity: 0;
+      transform: translateX(-0.6em) rotate(-80deg);
+      transform-origin: center center;
+    }
+
+
+    /* 페이지가 들어올 때 '글'만 살짝 늦게 등장 */
+    body.page-enter #title .char-g {
+      animation: charGIn 0.9s ease-out 0.5s forwards;
+    }
+
+   @keyframes charGIn {
+    0% {
+      opacity: 0;
+      transform: translateX(-0.6em) rotate(-80deg); /* 른 쪽에서 기울어진 상태 */
+    }
+    50% {
+      opacity: 1;
+      transform: translateX(0.1em) rotate(15deg);   /* 살짝 앞으로 굴러나옴 */
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0) rotate(0deg);        /* 제 위치에 착- 안착 */
+    }
+  }
+
+
+  /* 밑줄 애니는 그대로 두면 됨 */
   #title::after {
     content: "";
     position: absolute;
@@ -54,6 +93,7 @@
     transform: scaleX(0);
     animation: titleUnderline 0.9s ease-out forwards;
   }
+
 
   @keyframes titleUnderline {
     0%   { transform: scaleX(0); opacity: 0; }
@@ -134,7 +174,13 @@
     <div class="main-wrap">
       <div class="cards-container">
         <div class="menu">
-          <div class="logo-title" id="title">바른 글씨</div>
+          <div class="logo-title" id="title">
+            바<span class="char-run">른</span> 
+            <span class="char-g">글</span>씨
+          </div>
+
+
+
           <div class="btns">
             <a href="/daily" class="btn">오늘의 손글씨</a>
             <a href="/index" class="btn">손글씨 업로드</a>
@@ -420,6 +466,9 @@
       renderAuthButtons();
       loadLeaderboard();
     });
+
+   
+
 
   </script>
   
