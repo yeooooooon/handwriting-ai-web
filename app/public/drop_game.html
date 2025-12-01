@@ -108,6 +108,88 @@
     /* 스크롤 잠금 시 바디 흔들림 방지 */
     .body-lock { overflow:hidden; }
 
+      /* ===== 카드 확대 모드 ===== */
+    .upload-card {
+      position: relative;
+    }
+
+    .card-header {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:8px;
+    }
+
+    .card-zoom-btn {
+      border:none;
+      background:#e5edff;
+      border-radius:9999px;
+      padding:4px 10px;
+      font-size:12px;
+      font-weight:600;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap:4px;
+      line-height:1;
+    }
+    .card-zoom-btn::before{
+      content:"확대";
+    }
+    .card-zoom-btn:hover{
+      background:#d4e2ff;
+    }
+
+    .card-expand-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(15,23,42,.45);
+      z-index:9800;
+    }
+
+    /* 카드 ‘확대’ – 레이아웃 안에서만 크게 */
+    /* 카드 확대 – 왼쪽/오른쪽으로 넓게 */
+    .upload-card.expanded{
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);   /* Y축만 가운데 정렬 */
+      max-height: 88vh;
+      width: min(840px, 48vw);        /* 화면의 절반 가까이까지 넓게 */
+      background: #ffffff;
+      box-shadow: 0 24px 80px rgba(15,23,42,.35);
+      z-index: 9850;
+      overflow: auto;
+    }
+
+    /* 게임 카드 확대 시: 왼쪽 모니터 쪽으로 */
+    /* #game-card.expanded{
+      left: 3vw;
+      right: auto;
+    } */
+
+    /* 패드 카드 확대 시: 오른쪽 모니터 쪽으로 */
+    #pad-card.expanded{
+      right: 15vw;
+      left: auto;
+    }
+
+    /* 확대 상태에서 안쪽 높이만 조금 키워주기 */
+    /* #game-card.expanded .game-stage{
+      height: 60vh;
+    } */
+    #pad-card.expanded .pad-canvas-box{
+      height: 60vh;
+    }
+
+
+
+    /* 확대 모드일 때 버튼 텍스트를 '축소'로 보이게 */
+    .upload-card.expanded .card-zoom-btn::before{
+      content:"축소";
+    }
+
+
   </style>
 
   <link rel="shortcut icon" href="/static/image/favicon.ico">
@@ -127,12 +209,19 @@
     <a href="/"><img class="home-image" src="/static/image/home.png" alt="홈"></a>
   </header>
 
+
+
   <div class="layout-bg">
+    <div id="cardExpandBackdrop" class="card-expand-backdrop hidden"></div>
     <div class="main-wrap">
       <div class="cards-container">
         <!-- 게임 카드 -->
-        <div class="upload-card">
-          <div class="card-title">게임</div>
+        <div class="upload-card" id="game-card">
+          <div class="card-header">
+            <div class="card-title">게임</div>
+            <!-- <button class="card-zoom-btn" type="button" data-expand-target="game-card" aria-label="게임 화면 확대">⤢</button> -->
+          </div>
+
 
           <!-- 로그인/타이머/스코어 상태바 -->
           <div class="status-bar">
@@ -157,8 +246,12 @@
         </div>
 
         <!-- 패드 카드 -->
-        <div class="upload-card">
-          <div class="card-title">쓰기 패드</div>
+        <div class="upload-card" id="pad-card">
+          <div class="card-header">
+            <div class="card-title">쓰기 패드</div>
+            <button class="card-zoom-btn" type="button" data-expand-target="pad-card" aria-label="쓰기 패드 확대">⤢</button>
+          </div>
+
 
           <div class="pad-toolbar">
             <div class="tool-row">
@@ -799,6 +892,47 @@
       document.getElementById('recognize-btn').addEventListener('click', recognizeAndCheck);
     }
 
+        // ===== 카드 확대 토글 =====
+      function initCardExpand(){
+      // const cardIds = ['game-card', 'pad-card'];
+      const cardIds = ['pad-card'];
+
+      function closeAll(){
+        cardIds.forEach(id=>{
+          const c = document.getElementById(id);
+          if (c) c.classList.remove('expanded');
+        });
+      }
+
+      cardIds.forEach(id=>{
+        const card = document.getElementById(id);
+        if (!card) return;
+        const btn = card.querySelector('.card-zoom-btn');
+        if (!btn) return;
+
+        btn.addEventListener('click', ()=>{
+          const isExpanded = card.classList.contains('expanded');
+
+          if (isExpanded){
+            closeAll();
+            return;
+          }
+
+          closeAll();
+          card.classList.add('expanded');
+        });
+      });
+
+      // ESC로 닫기만 유지
+      window.addEventListener('keydown', (e)=>{
+        if (e.key === 'Escape'){
+          closeAll();
+        }
+      });
+    }
+
+
+
     // ===== 결과 모달 =====
     function openResultModal({score, hits, miss}) {
       const m = document.getElementById('resultModal');
@@ -836,13 +970,15 @@
     })();
 
 
-    window.onload = async () => {
+      window.onload = async () => {
       if (!await ensureLogin()) return;       // 로그인 강제
       initStage();
       initPad();
       bindUI();
+      initCardExpand();     // 👈 카드 확대 초기화
       await loadLeaderboard();
     };
+
   </script>
 </body>
 </html>

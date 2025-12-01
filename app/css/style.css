@@ -100,10 +100,10 @@ body, html {
 /* 오늘의 손글씨 */
 .cards-container1 {
   display: flex;
-  /* flex-wrap: wrap;
-  gap: 25px; */
   justify-content: center;
+  /* justify-content: left; */
   margin-bottom: 20px;
+  /* padding-left: 110px; */
 }
 
 /* 오늘의 손글씨 카드 */
@@ -407,51 +407,6 @@ body, html {
 
 
 /* 반응형 */
-/* @media (max-width: 1200px) {
-  .main-wrap { padding-left: 10px; padding-right: 10px; }
-  .logo-title { font-size: 34px; margin-left: 20px; }
-  .grid-2x2 { max-width: 98vw; }
-} */
-
-/* 공통: 위/아래 카드 컨테이너를 같은 폭/가터로 */
-/* .cards-container1,
-.cards-container {
-  max-width: 1268px;      
-  margin: 0 auto 24px;    /* 가운데 정렬 + 아래 간격 
-  padding: 0 24px;        /* 좌우 가터(아래랑 동일하게) 
-  box-sizing: border-box;
-} */
-
-/* 위쪽(오늘의 문장 + 제한시간) 좌우 배치 */
-/* .cards-container1 {
-  display: grid;
-  grid-template-columns: 1fr 1fr; 
-  gap: 24px;
-} */
-
-/* 위쪽 카드의 폭/마진 리셋(다른 .card 규칙이 있으면 이걸로 이김) */
-/* .cards-container1 > .card {
-  width: 100% !important;
-  margin: 0 !important;
-  justify-self: stretch;
-} */
-
-/* (옵션) 위쪽 카드 외형 통일 */
-/* .cards-container1 > .card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 6px 16px rgba(0,0,0,.06);
-} */
-
-/* 카드 외형(아래 카드와 통일) */
-/* .cards-container1 .today-sentence-card,
-.cards-container1 .timer-card{
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 6px 16px rgba(0,0,0,.06);
-} */
 
 /* 모바일/태블릿에서는 세로로 쌓기 */
 @media (max-width: 1024px){
@@ -612,5 +567,40 @@ body, html {
     height: 45px;
     font-size: 14px;
     white-space: nowrap;    /* 라인 래핑 방지 */
+  }
+}
+
+@media (min-width: 3262px) {
+  /* 1. `.main-wrap`의 최대 너비를 충분히 확장 (예: 2500px 등) */
+  /* 현재 1440px로 되어 있어, 2500px로 확장합니다. 이 값이 전체 레이아웃의 너비를 결정합니다. */
+  .main-wrap {
+      max-width: 2500px; /* 원하는 너비로 수정 */
+      margin: 0 auto;
+      padding: 50px 0 50px 0;
+  }
+
+  /* 2. `.cards-container` (입력 방식 선택 카드) 수정 */
+  /* 2열 고정 크기(600px+600px)를 유지하면서 왼쪽 정렬 */
+  .cards-container {
+      display: grid;
+      grid-template-columns: 1900px 600px; /* 2열 고정 */
+      gap: 20px; /* 칸 사이 간격 */
+      /* justify-content: flex-start; 로 변경하여 왼쪽 정렬 */
+      justify-content: flex-start;
+  }
+
+  /* 3. `.cards-container1` (오늘의 문장 카드) 수정 */
+  /* 왼쪽 정렬 및 폭 100% 유지 (600px 카드 중앙 정렬 제거) */
+  .cards-container1 {
+      display: flex;
+      justify-content: flex-start; /* 왼쪽 정렬 */
+      width: 100%; /* 전체 폭 사용 */
+      margin-bottom: 20px;
+  }
+  
+  /* 오늘의 손글씨 카드 (.today-sentence-card)의 너비를 600px로 유지하여 
+     아래 .cards-container의 600px 카드와 너비를 맞춥니다. */
+  .today-sentence-card {
+      width: 600px;
   }
 }
