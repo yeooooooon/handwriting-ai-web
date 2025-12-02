@@ -172,19 +172,36 @@ body {
 
 
 /* ========== Modal base ========== */
-.modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+/* ===== Modal ===== */
 .modal.hidden { display: none; }
-.modal-backdrop { position: absolute; inset: 0; background: #0006; backdrop-filter: blur(2px); }
+ /* 모달 전체 화면 덮기 */
+  .modal{
+    position: fixed !important;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;      /* 세로 가운데 */
+    justify-content: center;  /* 가로 가운데 */
+    z-index: 4000;            /* 헤더보다 아래/위 원하는 대로 조절 */
+  }
 
-.modal-panel {
-  position: relative;
-  width: min(92vw, 420px);
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.25);
-  padding: 24px 22px 20px;
-  z-index: 1;
-}
+  .modal-backdrop{
+    position: absolute !important;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.45) !important; /* 밝은 우유빛 */
+    backdrop-filter: blur(10px) !important;        /* 흐릿하게만 */
+    -webkit-backdrop-filter: blur(10px) !important;
+    z-index: 0;
+  }
+
+  /* 패널은 백드롭 위에 올라오도록 */
+  .modal-panel{
+    position: relative;
+    z-index: 1;
+  }
 
 .modal-title { margin: 4px 0 14px; font-size: 22px; font-weight: 700; color: #1f2937; }
 .modal-close {

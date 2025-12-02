@@ -171,6 +171,42 @@
       transform: translateY(0);
     }
   }
+
+
+/* ===== 모달 공통 ===== */
+
+  /* 화면 전체 중앙 정렬 모달 컨테이너 */
+  .modal {
+    position: fixed;
+    inset: 0;                       /* top:0; right:0; bottom:0; left:0 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+  }
+
+  /* 화면 전체를 흐릿하게 만드는 백드롭 */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.18);   /* 대략 #0003~#0004 느낌 */
+    backdrop-filter: blur(4px);           /* 배경 살짝 흐림 */
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 0;                              /* 패널보다 아래 */
+  }
+
+  /* 실제 로그인 박스 카드 */
+  .modal-panel {
+    position: relative;
+    width: min(92vw, 420px);
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    padding: 24px 22px 20px;
+    z-index: 1;                               /* 백드롭 위 */
+  }
+
+
 </style>
 
 
@@ -211,37 +247,7 @@
           <div class="rank-list"></div>
         </div>
       </div>
-      <!-- Auth Modal -->
-  <div id="authModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="modal-backdrop" data-close="1"></div>
-
-  <div class="modal-panel" role="document">
-    <button class="modal-close" aria-label="닫기" data-close="1">✕</button>
-
-    <h2 class="modal-title">로그인</h2>
-
-    <form id="authForm">
-      <label class="field">
-        <span>아이디</span>
-        <input id="auth-username" name="username" type="text" autocomplete="username" required />
-      </label>
-
-      <label class="field">
-        <span>비밀번호</span>
-        <input id="auth-password" name="password" type="password" autocomplete="current-password" required />
-      </label>
-
-      <button id="authSubmit" type="submit" class="primary">로그인</button>
-
-      <div id="switcherRow" class="switcher-row">
-        <span class="muted">아직 계정이 없나요?</span>
-        <a href="javascript:void(0)" id="toSignupLink">회원가입</a>
-      </div>
-
-      <p id="authError" class="error" role="alert" aria-live="polite"></p>
-    </form>
-  </div>
-</div>
+     
     </div>
   </div>
 
@@ -249,6 +255,38 @@
   <footer class="footer-copyright">
     © 2025 바른글씨. All rights reserved.
   </footer>
+  
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal hidden" aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="modal-backdrop" data-close="1"></div>
+
+    <div class="modal-panel" role="document">
+      <button class="modal-close" aria-label="닫기" data-close="1">✕</button>
+
+      <h2 class="modal-title">로그인</h2>
+
+      <form id="authForm">
+        <label class="field">
+          <span>아이디</span>
+          <input id="auth-username" name="username" type="text" autocomplete="username" required />
+        </label>
+
+        <label class="field">
+          <span>비밀번호</span>
+          <input id="auth-password" name="password" type="password" autocomplete="current-password" required />
+        </label>
+
+        <button id="authSubmit" type="submit" class="primary">로그인</button>
+
+        <div id="switcherRow" class="switcher-row">
+          <span class="muted">아직 계정이 없나요?</span>
+          <a href="javascript:void(0)" id="toSignupLink">회원가입</a>
+        </div>
+
+        <p id="authError" class="error" role="alert" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
 
   <script>
 // // 타이틀 그림자 (임시 비활성화)
@@ -331,6 +369,7 @@
       modalEl.classList.remove('hidden');
       modalEl.setAttribute('aria-hidden','false');
       document.body.style.overflow = 'hidden';
+
       userEl.value = presetUsername || '';
       passEl.value = '';
       errorEl.textContent = '';
@@ -341,6 +380,8 @@
       modalEl.setAttribute('aria-hidden','true');
       document.body.style.overflow = '';
     }
+
+
 
     // 모달 닫기 (배경/버튼/ESC)
     modalEl.addEventListener('click', (e) => {

@@ -384,9 +384,25 @@ body, html {
 .upload-box.dragover { outline:2px dashed #2563eb; }
 
 /* ===== Modal ===== */
-.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal{
+  position: fixed;
+  inset: 0;
+  display: flex;
+  /* 가운데에서 살짝 위로 올리기 */
+  align-items: flex-start;      /* 위쪽 기준 정렬 */
+  justify-content: center;      /* 가로는 가운데 */
+  padding-top: 175px;            /* 위에서 80px 정도 띄우기 */
+  z-index: 1000;
+}
+
 .modal.hidden{display:none}
-.modal-backdrop{position:absolute;inset:0;background:#0006;backdrop-filter:blur(2px)}
+.modal-backdrop{
+  position: absolute;
+  inset: 0;
+  /* 너무 까맣지 않게 연하게 */
+  background: rgba(15, 23, 42, 0.18);   /* 대략 #0003~#0004 느낌 */
+  backdrop-filter: blur(4px);           /* 배경 살짝 흐림 */
+}
 .modal-panel{position:relative;width:min(92vw,420px);background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.25);padding:24px 22px 20px;z-index:1}
 .modal-title{margin:4px 0 14px;font-size:22px;font-weight:700;color:#1f2937}
 .modal-close{position:absolute;top:10px;right:10px;width:32px;height:32px;border:0;border-radius:8px;background:#f1f5f9;cursor:pointer}
