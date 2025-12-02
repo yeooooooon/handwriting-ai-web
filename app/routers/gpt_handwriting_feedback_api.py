@@ -39,6 +39,7 @@ def _get_client() -> OpenAI:
 def _gpt_scoring_prompt():
     return (
         "너는 한글 손글씨 채점관이다.\n"
+        "가장 중요한 임무는 이미지를 기반으로 한글 문장을 한 글자도 빠짐없이 정확히 읽는 것이다. 문맥에 맞지 않아도 이미지에 보이는 그대로 반환해야 한다.\n" # ⬅️ 핵심 수정: 인식 정확성 강조
         "입력: 손글씨 이미지 1장.\n"
         "해야 할 일:\n"
         "1) 이미지 속 한글 문장을 정확히 읽어 'recognized_text' 로 반환(공백/줄바꿈 보존)\n"
@@ -68,6 +69,7 @@ def _call_gpt_vision_and_score(image_bytes: bytes) -> dict:
     resp = client.chat.completions.create(
         model="gpt-4o",
         temperature=0,
+        response_format={"type": "json_object"}, # ⬅️ 핵심 수정: JSON 출력을 강제합니다.
         messages=[
             {"role": "system", "content": "You are a strict JSON generator."},
             {"role": "user",
