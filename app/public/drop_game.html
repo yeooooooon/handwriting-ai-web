@@ -227,7 +227,7 @@
           <div class="status-bar">
             <div class="status-left">
               <span class="pill" id="me-pill">로그인 확인중...</span>
-              <span class="pill">제한시간 <b id="time-left">60</b>s</span>
+              <span class="pill">제한시간 <b id="time-left">30</b>s</span>
               <span class="pill">점수 <b id="score">0</b></span>
               <span class="pill">성공 <b id="hits">0</b></span>
               <span class="pill muted">실패 <b id="miss">0</b></span>
@@ -523,7 +523,7 @@
     // ================= 게임 로직 =================
     const stage = { el:null, width:0, height:0 };
     const game = {
-      running:false, timeLeft:60, timerId:null,
+      running:false, timeLeft:30, timerId:null,
       score:0, hits:0, miss:0,
       wordsPool: [
         "사랑","바다","서울","학교","컴퓨터","연습","하늘","나무","바람","봄날",
@@ -622,14 +622,14 @@
         game.timerId = null;
       }
       game.running = true;
-      game.timeLeft = 60;
+      game.timeLeft = 30;
       game.score = 0; game.hits = 0; game.miss = 0;
       game.spawnEveryMs = CONFIG.SPAWN_EVERY_MS_INIT;
       game.speedBase = CONFIG.SPEED_BASE_INIT;
       game.lastSpawn = 9999;
       game._last = 0;
       game.lockedId = null;
-      document.getElementById('time-left').textContent = "60";
+      document.getElementById('time-left').textContent = "30";
       document.getElementById('score').textContent = "0";
       document.getElementById('hits').textContent = "0";
       document.getElementById('miss').textContent = "0";
@@ -662,7 +662,7 @@
           score: game.score,
           hits: game.hits,
           miss: game.miss,
-          duration_ms: 60000
+          duration_ms: 30000
       };
       // 익명 제출 시 이니셜 추가
       if (!Auth.token && initials) {
