@@ -179,7 +179,7 @@
       height: 60vh;
     } */
     #pad-card.expanded .pad-canvas-box{
-      height: 60vh;
+      height: 45vh;
     }
 
 
@@ -391,104 +391,58 @@
 
     // ================= Handwriting Pad =================
     class HandwritingPad {
-      constructor(canvas) {
+      constructor(canvas){
         this.canvas = canvas;
-        this.ctx = canvas.getContext('2d', { willReadFrequently:true });
-        this.strokeStyle = '#111111';
-        this.baseSize = 4;
-        this.usePressure = true;
-        this.isErasing = false;
-        this.paths = [];
-        this.currentPath = null;
-
+        this.ctx = canvas.getContext('2d',{willReadFrequently:true});
+        this.strokeStyle='#111111'; this.baseSize=4; this.usePressure=true; this.isErasing=false;
+        this.paths=[]; this.currentPath=null;
         this.resize();
-        window.addEventListener('resize', () => this.resize());
-        this._bindPointerEvents();
-        this._drawGuides();
+        window.addEventListener('resize',()=>this.resize());
+        this._bindPointerEvents(); this._drawGuides();
       }
-      setStrokeStyle(c){ this.strokeStyle = c; }
-      setBaseSize(px){ this.baseSize = px; }
-      setUsePressure(on){ this.usePressure = on; }
-      toggleEraser(){ this.isErasing = !this.isErasing; return this.isErasing; }
-
-      clear(){
-        const rect=this.canvas.getBoundingClientRect();
-        this.ctx.save();
-        this.ctx.globalCompositeOperation='source-over';
-        this.ctx.fillStyle='#ffffff';
-        this.ctx.fillRect(0,0,rect.width,rect.height);
-        this.ctx.restore();
-        this._drawGuides();
-        this.paths=[];
-      }
+      setStrokeStyle(c){ this.strokeStyle=c; }
+      setBaseSize(px){ this.baseSize=px; }
+      setUsePressure(on){ this.usePressure=on; }
+      toggleEraser(){ this.isErasing=!this.isErasing; return this.isErasing; }
+      clear(){ const rect=this.canvas.getBoundingClientRect(); this.ctx.save(); this.ctx.globalCompositeOperation='source-over'; this.ctx.fillStyle='#ffffff'; this.ctx.fillRect(0,0,rect.width,rect.height); this.ctx.restore(); this._drawGuides(); this.paths=[]; }
       undo(){ if(!this.paths.length) return; this.paths.pop(); this._redrawAll(); }
 
-      async toBlobWhiteBg(){
-        const rect=this.canvas.getBoundingClientRect();
-        const dpr=window.devicePixelRatio||1;
-        const off=document.createElement('canvas');
-        off.width=Math.round(rect.width*dpr);
-        off.height=Math.round(rect.height*dpr);
-        const octx=off.getContext('2d');
-        octx.scale(dpr,dpr);
-        octx.fillStyle='#ffffff';
-        octx.fillRect(0,0,rect.width,rect.height);
-        octx.drawImage(this.canvas,0,0);
-        return await new Promise(r=>off.toBlob(r,'image/png',1.0));
-      }
+      async toBlobWhiteBg(){ const rect=this.canvas.getBoundingClientRect(); const dpr=window.devicePixelRatio||1; const off=document.createElement('canvas'); off.width=Math.round(rect.width*dpr); off.height=Math.round(rect.height*dpr); const octx=off.getContext('2d'); octx.scale(dpr,dpr); octx.fillStyle='#ffffff'; octx.fillRect(0,0,rect.width,rect.height); octx.drawImage(this.canvas,0,0); return await new Promise(r=>off.toBlob(r,'image/png',1.0)); }
 
       resize(){
-        const rect=this.canvas.getBoundingClientRect();
-        if(!rect.width||!rect.height) return;
+        const rect=this.canvas.getBoundingClientRect(); if(!rect.width||!rect.height) return;
         const dpr=window.devicePixelRatio||1;
         this.canvas.width=Math.round(rect.width*dpr);
         this.canvas.height=Math.round(rect.height*dpr);
         this.ctx.setTransform(dpr,0,0,dpr,0,0);
-        this.ctx.fillStyle='#ffffff';
-        this.ctx.fillRect(0,0,rect.width,rect.height);
-        this._drawGuides();
-        this._redrawAll();
+        this.ctx.fillStyle='#ffffff'; this.ctx.fillRect(0,0,rect.width,rect.height);
+        this._drawGuides(); this._redrawAll();
       }
 
-      _drawGuides(){
-        const rect=this.canvas.getBoundingClientRect(), ctx=this.ctx;
-        ctx.save(); ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1;
-        const h=rect.height, margin=16, mid=Math.round(h/2);
-        ctx.beginPath();
-        ctx.moveTo(margin, mid-40); ctx.lineTo(rect.width-margin, mid-40);
-        ctx.moveTo(margin, mid);    ctx.lineTo(rect.width-margin, mid);
-        ctx.moveTo(margin, mid+40); ctx.lineTo(rect.width-margin, mid+40);
-        ctx.stroke(); ctx.restore();
-      }
+      _drawGuides(){ const rect=this.canvas.getBoundingClientRect(), ctx=this.ctx; ctx.save(); ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1; const h=rect.height, margin=16, mid=Math.round(h/2); ctx.beginPath(); ctx.moveTo(margin, mid-40); ctx.lineTo(rect.width-margin, mid-40); ctx.moveTo(margin, mid); ctx.lineTo(rect.width-margin, mid); ctx.moveTo(margin, mid+40); ctx.lineTo(rect.width-margin, mid+40); ctx.stroke(); ctx.restore(); }
 
       _bindPointerEvents(){
         const c=this.canvas;
-        const onDown=(e)=>{
-          e.preventDefault();
-          c.setPointerCapture(e.pointerId);
-          this.currentPath = {
-            points: [],
-            erase: this.isErasing,
-            color: this.strokeStyle,
-            size: this.baseSize,
-            pressure: this.usePressure
-          };
-          this.paths.push(this.currentPath);
-          this._addPoint(e);
-        };
+        const onDown=(e)=>{ e.preventDefault(); c.setPointerCapture(e.pointerId); this.currentPath={points:[], erase:this.isErasing, color:this.strokeStyle, size:this.baseSize, pressure:this.usePressure}; this.paths.push(this.currentPath); this._addPoint(e); };
         const onMove=(e)=>{ if(!this.currentPath) return; this._addPoint(e,true); };
         const onUp=(e)=>{ if(!this.currentPath) return; this._addPoint(e,true); this.currentPath=null; c.releasePointerCapture(e.pointerId); };
-        c.addEventListener('pointerdown', onDown, {passive:false});
-        c.addEventListener('pointermove', onMove, {passive:false});
-        c.addEventListener('pointerup', onUp, {passive:false});
-        c.addEventListener('pointercancel', onUp, {passive:false});
-        c.addEventListener('touchstart', e=>e.preventDefault(), {passive:false});
-        c.addEventListener('touchmove',  e=>e.preventDefault(), {passive:false});
+        c.addEventListener('pointerdown',onDown,{passive:false});
+        c.addEventListener('pointermove',onMove,{passive:false});
+        c.addEventListener('pointerup',onUp,{passive:false});
+        c.addEventListener('pointercancel',onUp,{passive:false});
+        c.addEventListener('touchstart',e=>e.preventDefault(),{passive:false});
+        c.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
       }
 
-      _addPoint(e, draw=false){
+      _addPoint(e,draw=false){
         const rect=this.canvas.getBoundingClientRect();
-        const x=e.clientX-rect.left, y=e.clientY-rect.top;
+        const card = this.canvas.closest('.upload-card');
+        let scaleX = 1, scaleY = 1;
+        if (card && card.classList.contains('expanded')) {
+          scaleX = rect.width / this.canvas.width;
+          scaleY = rect.height / this.canvas.height;
+        }
+        const x=(e.clientX-rect.left)/scaleX, y=(e.clientY-rect.top)/scaleY;
         const p=(this.usePressure && e.pressure)?e.pressure:1;
         this.currentPath.points.push({x,y,p});
         if(draw) this._redrawLastSegment(); else this._drawDot(x,y,p);
@@ -698,7 +652,7 @@
       }
     } catch (e){ console.error(e); }
 
-    // 👉 모달 오픈
+    // 모달 오픈
     openResultModal({ 
       score: game.score, 
       hits: game.hits, 
