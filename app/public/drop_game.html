@@ -616,6 +616,11 @@
 
     function startGame(){
       if (game.running) return;
+      // 기존 타이머가 혹시 남아있다면 제거 (안전 장치)
+      if (game.timerId) {
+        clearInterval(game.timerId);
+        game.timerId = null;
+      }
       game.running = true;
       game.timeLeft = 60;
       game.score = 0; game.hits = 0; game.miss = 0;
@@ -782,6 +787,11 @@
 
     // 인식/API 호출이 시작되기 전에 게임을 정지합니다.
     function pauseGame() {
+      gamePaused = true;
+      if (game.timerId) { // ★★★ 타이머가 있으면 멈춤 ★★★
+        clearInterval(game.timerId);
+        game.timerId = null;
+      }
       document.getElementById('time-left').style.color = '#ef4444'; // 시간이 멈췄음을 시각적으로 표시
     }
 
@@ -791,6 +801,17 @@
       document.getElementById('time-left').style.color = '';
       // 게임 재개
       if (game.running) {
+        // ★★★ 타이머 재시작 (startGame의 로직 재사용) ★★★
+        if (!game.timerId) {
+          game.timerId = setInterval(()=>{
+            game.timeLeft -= 1;
+            document.getElementById('time-left').textContent = game.timeLeft;
+            if (game.timeLeft <= 0){
+              endGame();
+            }
+          }, 1000);
+        }
+
         game._last = 0; // dt 계산을 위해 last time 초기화
         requestAnimationFrame(gameLoop);
       }
