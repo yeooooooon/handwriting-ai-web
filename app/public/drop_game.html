@@ -755,28 +755,65 @@
 
     // ============ 인식 → 현재 단어 정답 체크 ============
     let recognizeBusy = false;
+    let gamePaused = false; // ★★★ 게임 일시 정지 상태 플래그 추가 ★★★
 
-    function pickTargetForCheck(){
-      if (!game.active.length) return null;
-      // 현재 화면에서 가장 아래에 있는 단어 선택
-      const sorted = [...game.active].sort((a,b)=> b.y - a.y);
-      return sorted[0];
+    // function pickTargetForCheck(){
+    //   if (!game.active.length) return null;
+    //   // 현재 화면에서 가장 아래에 있는 단어 선택
+    //   const sorted = [...game.active].sort((a,b)=> b.y - a.y);
+    //   return sorted[0];
+    // }
+
+    // function lockTarget(target){
+    //   target.locked = true;
+    //   target.el.classList.add('locked');
+    //   game.lockedId = target.id;
+    //   game.lockedAt = performance.now();
+    // }
+
+    // function unlockTarget(id){
+    //   const w = game.active.find(x=> x.id === id);
+    //   if (w){
+    //     w.locked = false;
+    //     w.el.classList.remove('locked');
+    //   }
+    //   if (game.lockedId === id) game.lockedId = null;
+    // }
+
+    // 인식/API 호출이 시작되기 전에 게임을 정지합니다.
+    function pauseGame() {
+      document.getElementById('time-left').style.color = '#ef4444'; // 시간이 멈췄음을 시각적으로 표시
     }
 
-    function lockTarget(target){
-      target.locked = true;
-      target.el.classList.add('locked');
-      game.lockedId = target.id;
-      game.lockedAt = performance.now();
-    }
-
-    function unlockTarget(id){
-      const w = game.active.find(x=> x.id === id);
-      if (w){
-        w.locked = false;
-        w.el.classList.remove('locked');
+    // 인식/API 호출이 끝난 후에 게임을 재개합니다.
+    function resumeGame() {
+      gamePaused = false;
+      document.getElementById('time-left').style.color = '';
+      // 게임 재개
+      if (game.running) {
+        game._last = 0; // dt 계산을 위해 last time 초기화
+        requestAnimationFrame(gameLoop);
       }
-      if (game.lockedId === id) game.lockedId = null;
+    }
+
+
+    // 낙하 로직이 포함된 gameLoop 함수도 수정합니다.
+    function gameLoop(ts){
+      if(!game.running || gamePaused) return; // ★★★ gamePaused일 경우 즉시 리턴하여 정지 ★★★
+      if(!game._last) game._last=ts;
+      const dt = ts - game._last; game._last = ts;
+
+      // 스폰
+      game.lastSpawn += dt;
+      if (game.lastSpawn >= game.spawnEveryMs){
+        game.lastSpawn = 0;
+        spawnWord();
+      }
+
+      // 낙하
+      updateWords(dt);
+
+      requestAnimationFrame(gameLoop);
     }
 
     async function recognizeAndCheck(){
@@ -785,8 +822,9 @@
         return;
       }
       if (recognizeBusy) return; // 중복 호출 방지
-      const target = pickTargetForCheck();
-      if (!target) {
+      // const target = pickTargetForCheck();
+      // if (!target) {
+      if (!game.active.length) {
         const err = document.getElementById('error-message');
         err.textContent = "화면에 단어가 없습니다. 잠시 후 다시 시도!";
         err.classList.remove('hidden');
@@ -795,7 +833,10 @@
       }
 
       // 인식 대기 중 단어가 내려가 사라지지 않도록 잠금
-      lockTarget(target);
+      // lockTarget(target);
+
+      // ★★★ 게임 일시 정지 및 시간/로딩 표시 ★★★
+      pauseGame();
 
       recognizeBusy = true;
       const btn = document.getElementById('recognize-btn');
@@ -825,11 +866,74 @@
         const rec = (recogRaw || "").replace(/\s/g,"");
         document.getElementById('recognized-preview').textContent = recogRaw || "-";
 
-        const targetClean = (target.text||"").replace(/\s/g,"");
+      //     const targetClean = (target.text||"").replace(/\s/g,"");
 
-        // 매칭 규칙: 인식문자열에 targetClean 포함 시 정답
-        if (rec && targetClean && rec.includes(targetClean)){
+      //   // 매칭 규칙: 인식문자열에 targetClean 포함 시 정답
+      //   if (rec && targetClean && rec.includes(targetClean)){
+      //     // 정답 처리
+      //     game.score += Math.max(10, 30 - Math.floor(target.y/30)); // 빠르게 맞출수록 가점
+      //     game.hits += 1;
+
+      //     // 난이도 증가(완만하게)
+      //     game.spawnEveryMs = Math.max(CONFIG.SPAWN_EVERY_MS_MIN, game.spawnEveryMs - CONFIG.SPAWN_DEC_ON_HIT);
+      //     game.speedBase = Math.min(CONFIG.SPEED_MAX, game.speedBase + CONFIG.SPEED_INC_ON_HIT);
+
+      //     // 화면에서 제거
+      //     target.el.remove();
+      //     game.active = game.active.filter(w => w.id !== target.id);
+      //     game.lockedId = null;
+
+      //     // UI 반영
+      //     document.getElementById('score').textContent = game.score;
+      //     document.getElementById('hits').textContent = game.hits;
+
+      //     // 패드 초기화
+      //     pad.clear();
+
+      //     // 피드백
+      //     const ok = document.getElementById('success-message');
+      //     ok.textContent = "정답! 점수 +";
+      //     ok.classList.remove('hidden');
+      //     setTimeout(()=> ok.classList.add('hidden'), 800);
+      //   } else {
+      //     // 오답 피드백 (감점은 없음)
+      //     const err = document.getElementById('error-message');
+      //     err.textContent = "오답 또는 인식 불량. 다시 시도!";
+      //     err.classList.remove('hidden');
+      //     setTimeout(()=> err.classList.add('hidden'), 900);
+      //     // 잠금 해제(단어 계속 떨어지게)
+      //     unlockTarget(target.id);
+      //   }
+      // } catch (e){
+      //   console.error(e);
+      //   alert("인식 실패: " + e.message);
+      //   unlockTarget(target.id);
+      // } finally {
+      //   loadingEl.classList.add('hidden');
+      //   document.body.style.overflow = '';
+      //   recognizeBusy = false;
+      //   btn.disabled = false;
+      // }
+      let matchedWord = null;
+        let matchedIndex = -1;
+
+        // ★★★ 모든 활성 단어 중 정답 찾기 로직 ★★★
+        for (let i = 0; i < game.active.length; i++) {
+            const w = game.active[i];
+            const targetClean = (w.text||"").replace(/\s/g,"");
+            
+            // 매칭 규칙: 인식문자열에 targetClean 포함 시 정답
+            if (rec && targetClean && rec.includes(targetClean)){
+                matchedWord = w;
+                matchedIndex = i;
+                break; // 가장 먼저 일치하는 단어만 처리
+            }
+        }
+
+
+        if (matchedWord){
           // 정답 처리
+          const target = matchedWord;
           game.score += Math.max(10, 30 - Math.floor(target.y/30)); // 빠르게 맞출수록 가점
           game.hits += 1;
 
@@ -839,8 +943,7 @@
 
           // 화면에서 제거
           target.el.remove();
-          game.active = game.active.filter(w => w.id !== target.id);
-          game.lockedId = null;
+          game.active.splice(matchedIndex, 1); // 해당 단어를 제거
 
           // UI 반영
           document.getElementById('score').textContent = game.score;
@@ -851,7 +954,7 @@
 
           // 피드백
           const ok = document.getElementById('success-message');
-          ok.textContent = "정답! 점수 +";
+          ok.textContent = `정답! "${target.text}" +${Math.max(10, 30 - Math.floor(target.y/30))}점`;
           ok.classList.remove('hidden');
           setTimeout(()=> ok.classList.add('hidden'), 800);
         } else {
@@ -860,14 +963,14 @@
           err.textContent = "오답 또는 인식 불량. 다시 시도!";
           err.classList.remove('hidden');
           setTimeout(()=> err.classList.add('hidden'), 900);
-          // 잠금 해제(단어 계속 떨어지게)
-          unlockTarget(target.id);
         }
       } catch (e){
         console.error(e);
         alert("인식 실패: " + e.message);
-        unlockTarget(target.id);
       } finally {
+        // ★★★ 게임 재개 및 로딩 해제 ★★★
+        resumeGame(); 
+        
         loadingEl.classList.add('hidden');
         document.body.style.overflow = '';
         recognizeBusy = false;
