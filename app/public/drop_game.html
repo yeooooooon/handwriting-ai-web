@@ -313,10 +313,18 @@
               <b id="res-miss">0</b>
             </div>
           </div>
-
+          <div id="initials-input-area" class="hidden" style="margin-bottom:12px;">
+            <label style="display:block; font-weight:600; margin-bottom:6px;">순위에 등록할 3자리 이니셜 (선택)</label>
+            <input type="text" id="initials-input" maxlength="3" placeholder="예: HGS (3글자)" 
+              style="width:120px; padding:8px; border:1px solid #d1d5db; border-radius:8px; text-transform:uppercase;">
+          </div>
+    
+          <div id="initials-msg" class="muted" style="margin-bottom:12px;">
+            <span class="muted">로그인 사용자(`👤 ${Auth.username}`)는 자동으로 순위에 등록됩니다.</span>
+          </div>
     <div class="result-actions">
       <button id="res-home"   class="btn gray2"   type="button">홈으로</button>
-      <button id="res-replay" class="btn blue1"   type="button">다시하기</button>
+      <button id="res-replay" class="btn blue1"   type="button">확인</button>
     </div>
   </div>
 </div>
@@ -357,6 +365,9 @@
       get token() {
         return localStorage.getItem('token') || localStorage.getItem('auth_token') || '';
       },
+      get username() { // ★★★ username getter 추가
+        return localStorage.getItem('username') || '';
+      },
       clear() {
         localStorage.removeItem('token');
         localStorage.removeItem('auth_token');
@@ -367,10 +378,30 @@
     // 로그인 확인: 토큰이 있고 /auth/me가 200이면 OK
     async function ensureLogin() {
       const token = Auth.token;
+      // if (!token) {
+      //   alert("로그인이 필요합니다. 메인에서 로그인 후 다시 들어와 주세요.");
+      //   location.href = "/"; // 프로젝트 홈으로 보냄
+      //   return false;
+      // }
+      // try {
+      //   const res = await fetch(`${API_BASE}/auth/me`, {
+      //     headers: { "Authorization": `Bearer ${token}` }
+      //   });
+      //   if (!res.ok) throw new Error("auth fail");
+      //   const data = await res.json();
+      //   const username = data.username || "익명";
+      //   document.getElementById("me-pill").textContent = `👤 ${username}`;
+      //   return true;
+      // } catch {
+      //   alert("세션이 만료되었거나 로그인 정보가 없습니다. 다시 로그인 해주세요.");
+      //   Auth.clear();
+      //   location.href = "/";
+      //   return false;
+      // }
+      let username = "비로그인"; // 기본값
       if (!token) {
-        alert("로그인이 필요합니다. 메인에서 로그인 후 다시 들어와 주세요.");
-        location.href = "/"; // 프로젝트 홈으로 보냄
-        return false;
+        document.getElementById("me-pill").textContent = `👤 ${username}`;
+        return false; // 로그인 상태 아님
       }
       try {
         const res = await fetch(`${API_BASE}/auth/me`, {
@@ -378,13 +409,13 @@
         });
         if (!res.ok) throw new Error("auth fail");
         const data = await res.json();
-        const username = data.username || "익명";
+        username = data.username || "익명";
         document.getElementById("me-pill").textContent = `👤 ${username}`;
-        return true;
+        return true; // 로그인 상태
       } catch {
-        alert("세션이 만료되었거나 로그인 정보가 없습니다. 다시 로그인 해주세요.");
+        // 토큰이 유효하지 않으면 토큰 초기화
         Auth.clear();
-        location.href = "/";
+        document.getElementById("me-pill").textContent = `👤 비로그인`;
         return false;
       }
     }
@@ -619,7 +650,40 @@
       requestAnimationFrame(gameLoop);
     }
 
-      async function endGame(){
+    async function submitScore(initials = null) {
+      if (game.score === 0) return; // 0점은 제출하지 않음
+      
+      const payload = {
+          score: game.score,
+          hits: game.hits,
+          miss: game.miss,
+          duration_ms: 60000
+      };
+      // 익명 제출 시 이니셜 추가
+      if (!Auth.token && initials) {
+          payload.initials = initials.trim().toUpperCase().substring(0, 3);
+      } else if (!Auth.token && !initials) {
+          return; // 로그인도 안 했고 이니셜도 없으면 제출하지 않음
+      }
+
+      try{
+        const res = await fetch(`${API_BASE}/game/drop/submit`, {
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            "Authorization": `Bearer ${Auth.token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok){
+          await loadLeaderboard(); // 갱신
+        }
+      } catch (e){ 
+        console.error("점수 제출 실패:", e); 
+      }
+    }
+
+  async function endGame(){
     if (!game.running) return;
     game.running = false;
     clearInterval(game.timerId);
@@ -632,25 +696,36 @@
     game.active = [];
     game.lockedId = null;
 
-    // 점수 제출(로그인 상태에서만)
-    try{
-      const res = await fetch(`${API_BASE}/game/drop/submit`, {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "Authorization": `Bearer ${Auth.token}`
-        },
-        body: JSON.stringify({
-          score: game.score,
-          hits: game.hits,
-          miss: game.miss,
-          duration_ms: 60000
-        })
-      });
-      if (res.ok){
-        await loadLeaderboard(); // 갱신
+    // // 점수 제출(로그인 상태에서만)
+    // try{
+    //   const res = await fetch(`${API_BASE}/game/drop/submit`, {
+    //     method:"POST",
+    //     headers:{
+    //       "Content-Type":"application/json",
+    //       "Authorization": `Bearer ${Auth.token}`
+    //     },
+    //     body: JSON.stringify({
+    //       score: game.score,
+    //       hits: game.hits,
+    //       miss: game.miss,
+    //       duration_ms: 60000
+    //     })
+    //   });
+    //   if (res.ok){
+    //     await loadLeaderboard(); // 갱신
+    //   }
+    // } catch (e){ console.error(e); }
+    // ★★★ 점수 제출 처리 (로그인 상태면 즉시, 아니면 모달에서 처리) ★★★
+      if (Auth.token) {
+          await submitScore(); // 로그인 사용자: 즉시 제출
+          document.getElementById('initials-input-area').classList.add('hidden');
+          document.getElementById('initials-msg').textContent = `로그인 사용자(${Auth.username})로 자동 등록되었습니다.`;
+      } else {
+          // 비로그인 사용자: 이니셜 입력 필드 표시
+          document.getElementById('initials-input-area').classList.remove('hidden');
+          document.getElementById('initials-msg').textContent = `점수를 등록하려면 3자리 이니셜을 입력해주세요.`;
+          document.getElementById('initials-input').value = ""; // 초기화
       }
-    } catch (e){ console.error(e); }
 
     // 모달 오픈
     openResultModal({ 
@@ -917,15 +992,33 @@
         closeResultModal();
         location.href = '/';
       });
-      document.getElementById('res-replay').addEventListener('click', ()=> {
+      // document.getElementById('res-replay').addEventListener('click', ()=> {
+      //   closeResultModal();
+      //   startGame();               // 다시 시작
+      // });
+      document.getElementById('res-replay').addEventListener('click', async ()=> { // async 추가
+        const initialsInput = document.getElementById('initials-input');
+        const initials = initialsInput.value.trim().toUpperCase();
+        
+        // 비로그인 상태일 때만 이니셜 제출
+        if (!Auth.token && initials.length > 0) {
+            await submitScore(initials);
+        } else if (!Auth.token && game.score > 0) {
+             alert("순위 등록을 위해 3자리 이니셜을 입력하거나, 로그인해주세요.");
+             return;
+        } else {
+            // 0점 이거나 로그인 상태이면 바로 다음 진행
+        }
+
         closeResultModal();
-        startGame();               // 다시 시작
+        //startGame(); // 다시 시작, 바로 시작하지 않게 제거
       });
     })();
 
 
       window.onload = async () => {
-      if (!await ensureLogin()) return;       // 로그인 강제
+      // if (!await ensureLogin()) return;       // 로그인 강제
+      await ensureLogin();     // 로그인 상태만 확인 (로그인 실패해도 리턴하지 않음)
       initStage();
       initPad();
       bindUI();

@@ -49,6 +49,7 @@ class SubmitIn(BaseModel):
     hits: int = 0
     miss: int = 0
     duration_ms: int = 60000
+    initials: Optional[str] = None  # ★★★ 추가
 
 @router.get("/game/drop/leaderboard")
 def leaderboard(req: Request):
@@ -74,11 +75,20 @@ def leaderboard(req: Request):
 def submit_score(req: Request, body: SubmitIn):
     token = bearer_token_from_request(req)
     username = get_username_from_token(token or "")
-    if not username:
-        raise HTTPException(status_code=401, detail="인증 필요")
+    # if not username:
+    #     raise HTTPException(status_code=401, detail="인증 필요")
+    # ★★★ 로그인 사용자 이름이 없으면 initials 사용, 둘 다 없으면 에러 ★★★
+    submit_user = username
+    if not submit_user and body.initials:
+        # 이니셜은 3글자까지만 허용하고 대문자로 정리
+        submit_user = body.initials.strip().upper()[:3]
+
+    if not submit_user:
+        raise HTTPException(status_code=401, detail="로그인 또는 3자리 이니셜 입력 필요")
 
     rec = {
-        "username": username,
+        # "username": username,
+        "username": submit_user, # ★★★ 수정
         "score": int(body.score),
         "hits": int(body.hits),
         "miss": int(body.miss),
