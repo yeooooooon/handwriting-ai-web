@@ -1,107 +1,60 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse
-from PIL import Image, ImageDraw, ImageFont
-from io import BytesIO
-import easyocr
-import numpy as np
-import base64
-import cv2
-from skimage.metrics import structural_similarity as ssim
-from skimage.transform import resize
-import os
+✍️ Quartet(콰르텟): AI 기반 손글씨 교정 플랫폼
 
-router = APIRouter()
+Quartet은 사용자의 손글씨를 AI로 분석하여 표준 글씨와 비교하고, 실시간 피드백과 교정 학습을 제공하는 웹 기반 플랫폼입니다. 
 
-reader = easyocr.Reader(['ko'], gpu=False)
 
-# 기준 폰트 설정
-font_path = os.path.join(os.path.dirname(__file__), "fonts", "NotoSansKR-Regular.ttf")
-if not os.path.exists(font_path):
-    raise FileNotFoundError(f"폰트 파일을 찾을 수 없습니다: {font_path}")
 
-standard_font = ImageFont.truetype(font_path, size=48)
-resize_shape = (64, 64)
+1. 프로젝트 소개
 
-@router.post("/evaluate")
-async def evaluate_handwriting(file: UploadFile = File(...)):
-    if file.content_type not in ("image/png", "image/jpeg"):
-        raise HTTPException(status_code=400, detail="이미지 파일만 업로드 가능합니다.")
+핵심 서비스: 사용자가 입력한 손글씨를 인식하여 텍스트화하고, 표준 손글씨와의 유사도를 측정해 점수 및 피드백을 제공합니다. 
 
-    # 1. 원본 이미지 처리
-    image = Image.open(file.file).convert("RGB")
-    gray = np.array(image.convert("L"))
-    _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
-    # 2. 글자 외곽선 추출
-    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    char_images = []
-    for cnt in contours:
-        x, y, w, h = cv2.boundingRect(cnt)
-        if w * h < 100:  # 너무 작은 노이즈 제거
-            continue
-        char_crop = binary[y:y+h, x:x+w]
-        char_images.append((x, char_crop))
 
-    # 3. 왼쪽부터 정렬
-    char_images = [img for _, img in sorted(char_images, key=lambda x: x[0])]
+기획 배경: 디지털 기기 사용 확산으로 줄어든 손글씨 연습 기회를 보완하고, 젊은 세대에게 친숙하고 즐거운 교정 경험을 제공하고자 기획되었습니다. 
 
-    # 4. OCR로 텍스트 인식
-    text_result = reader.readtext(np.array(image), detail=0)
-    recognized_text = ''.join(text_result) if text_result else ""
-    clean_text = ''.join([c for c in recognized_text if c.strip()])
 
-    # 5. 교정 이미지 준비
-    corrected_image = Image.new("RGB", image.size, (255, 255, 255))
-    draw = ImageDraw.Draw(corrected_image)
+주요 특징:
 
-    total_score = 0.0
-    feedback_list = []
-    length = min(len(clean_text), len(char_images))
 
-    for i in range(length):
-        ch = clean_text[i]
-        char_img = char_images[i]
+AI 기반 분석: CNN 알고리즘을 활용한 정확한 글씨체 인식 및 유사도 측정. 
 
-        # 사용자 이미지 리사이즈
-        char_resized = resize(char_img, resize_shape, preserve_range=True).astype("uint8")
 
-        # 기준 글자 이미지 생성 (중앙 정렬)
-        font_img = Image.new("L", resize_shape, color=255)
-        draw_font = ImageDraw.Draw(font_img)
-        text_size = standard_font.getsize(ch)
-        x = (resize_shape[1] - text_size[0]) // 2
-        y = (resize_shape[0] - text_size[1]) // 2
-        draw_font.text((x, y), ch, font=standard_font, fill=0)
-        font_arr = np.array(font_img)
+시각적 피드백: 문제 영역을 색상으로 표시하여 개선점을 한눈에 파악 가능. 
 
-        try:
-            sim = ssim(char_resized, font_arr)
-        except:
-            sim = 0.0
 
-        score = max(sim * 100, 0)  # 음수 방지
-        total_score += score
 
-        if ch.strip():
-            if score < 70:
-                feedback_list.append(f"'{ch}' 글자가 기준과 많이 다릅니다.")
-            elif score < 90:
-                feedback_list.append(f"'{ch}' 글자를 조금 더 다듬으면 좋습니다.")
+학습 및 재미: 따라 쓰기 기능과 '속필 드롭 게임'을 통한 흥미 유발. 
 
-        draw.text((10 + i * 50, 10), ch, font=standard_font, fill=(0, 0, 0))
 
-    # 6. 최종 결과 계산
-    avg_score = total_score / length if length > 0 else 0
-    feedback_msg = " ".join(feedback_list) if feedback_list else "대체로 잘 쓰셨습니다."
 
-    # 7. 결과 이미지 base64 인코딩
-    buf = BytesIO()
-    corrected_image.save(buf, format="PNG")
-    img_base64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+2. 주요 기능
 
-    return JSONResponse(content={
-        "recognized_text": clean_text,
-        "score": round(avg_score, 2),
-        "feedback": feedback_msg,
-        "corrected_image": f"data:image/png;base64,{img_base64}"
-    })
+손글씨 업로드 및 인식: 이미지 업로드 또는 실시간 쓰기 패드(베타)를 통한 텍스트 분석. 
+
+
+
+점수화 및 상세 피드백: 글자별 점수 산출 및 가독성 향상을 위한 맞춤형 코칭 제공. 
+
+
+
+오늘의 손글씨: 매일 바뀌는 문장을 연습하고 사용자 간 순위를 경쟁하는 기능. 
+
+
+
+속필 드롭 게임: 위에서 내려오는 단어를 빠르게 입력하여 점수를 얻는 게임형 학습. 
+
+3. 기술 스택 (Tech Stack)
+
+Languages: Python, JavaScript 
+
+
+AI / Machine Learning: CNN(Convolutional Neural Network) 기반 분석 알고리즘 
+
+
+Platform: Web-based Architecture 
+
+<img width="2532" height="1438" alt="image" src="https://github.com/user-attachments/assets/124f8f36-9ffa-4532-83d1-3547b2bbf4ca" />
+
+<img width="2536" height="1423" alt="image" src="https://github.com/user-attachments/assets/d94e44bb-5a33-47b5-bdde-78aef5100cf3" />
+
+<img width="2530" height="1419" alt="image" src="https://github.com/user-attachments/assets/c335ea8f-f90d-401f-8089-7ec08eec70fe" />
