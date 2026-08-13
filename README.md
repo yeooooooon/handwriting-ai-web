@@ -43,7 +43,7 @@ AI 기반 분석: CNN 알고리즘을 활용한 정확한 글씨체 인식 및 �
 
 ## 3. 기술 스택 (Tech Stack)
 
-Languages: Python, JavaScript 
+Languages: Python, JavaScript, Html
 
 
 AI / Machine Learning: CNN(Convolutional Neural Network) 기반 분석 알고리즘 
